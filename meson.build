@@ -50,7 +50,7 @@ dependencies = [
 subdir ('src')
 
 # Define shared library
-libens_aw_core = library (
+libens_aw_core = shared_library (
     meson.project_name () + '-' + meson.project_version().split('.')[0],
     sources,
     dependencies: dependencies,
@@ -60,5 +60,6 @@ libens_aw_core = library (
 subdir ('po')
 
 ens_aw_core_dep = declare_dependency (
+    dependencies: dependencies,
     link_with: libens_aw_core
 )
