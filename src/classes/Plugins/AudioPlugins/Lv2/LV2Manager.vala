@@ -43,9 +43,9 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             }
         );
 
-        private IArrangerWorkstation i_aw_core;
+        private IAWCore i_aw_core;
 
-        public void load_plugins (IArrangerWorkstation i_aw_core, PluginManager plugin_manager) {
+        public void load_plugins (IAWCore i_aw_core, PluginManager plugin_manager) {
             assert (world != null);
 
             this.i_aw_core = i_aw_core;

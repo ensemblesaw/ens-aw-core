@@ -10,16 +10,16 @@ namespace Ensembles.ArrangerWorkstation {
      * This forms the core of the app. This houses all the behind the scenes
      * stuff that make every beat beat and every sound sound.
      */
-    public interface IArrangerWorkstation : Object {
+    public interface IAWCore : Object {
         // Signals
         /** Signals when the arranger is done loading data. */
         public signal void ready();
         /** Sends verbose status for loading screen. */
         public signal void send_loading_status(string status);
 
-        public abstract ArrangerWorkstation load_soundfont_from_path (string sf2_dir);
+        public abstract AWCore load_soundfont_from_path (string sf2_dir);
 
-        public abstract ArrangerWorkstation load_style_from_path (string enstl_path);
+        public abstract AWCore load_style_from_path (string enstl_path);
 
         /**
          * Load all data like voices, styles and plugins

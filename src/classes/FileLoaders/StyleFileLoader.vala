@@ -6,9 +6,9 @@ namespace Ensembles.ArrangerWorkstation.FileLoaders {
 
         private List<Style?> style_list;
 
-        private unowned IArrangerWorkstation i_aw_core;
+        private unowned IAWCore i_aw_core;
 
-        public StyleFileLoader (IArrangerWorkstation i_aw_core) {
+        public StyleFileLoader (IAWCore i_aw_core) {
             this.i_aw_core = i_aw_core;
         }
 

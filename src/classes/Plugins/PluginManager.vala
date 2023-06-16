@@ -16,7 +16,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins {
      * - Functional Plugins
      */
     public class PluginManager : Object {
-        private IArrangerWorkstation i_aw_core;
+        private IAWCore i_aw_core;
         /**
          * Audio Plugins (Voices and DSP)
          */
@@ -24,7 +24,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins {
 
         private AudioPlugins.Lv2.LV2Manager lv2_audio_plugin_manager;
 
-        public PluginManager (IArrangerWorkstation i_aw_core) {
+        public PluginManager (IAWCore i_aw_core) {
             this.i_aw_core = i_aw_core;
         }
 

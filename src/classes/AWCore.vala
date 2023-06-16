@@ -15,12 +15,12 @@ namespace Ensembles.ArrangerWorkstation {
      * This forms the core of the app. This houses all the behind the scenes
      * stuff that make every beat beat and every sound sound.
      */
-    public class ArrangerWorkstation : Object, IArrangerWorkstation {
-        private static ArrangerWorkstation _instance;
-        public static ArrangerWorkstation instance {
+    public class AWCore : Object, IAWCore {
+        private static AWCore _instance;
+        public static AWCore instance {
             get {
                 if (_instance != null) {
-                    _instance = new ArrangerWorkstation ();
+                    _instance = new AWCore ();
                 }
 
                 return _instance;
@@ -77,18 +77,18 @@ namespace Ensembles.ArrangerWorkstation {
             build_events ();
         }
 
-        private ArrangerWorkstation () {
+        private AWCore () {
 
         }
 
-        public ArrangerWorkstation load_soundfont_from_path (string sf2_dir) {
+        public AWCore load_soundfont_from_path (string sf2_dir) {
             sf_path = sf2_dir + "/EnsemblesGM.sf2";
             sf_schema_path = sf2_dir + "/EnsemblesGMSchema.csv";
 
             return this;
         }
 
-        public ArrangerWorkstation load_style_from_path (string enstl_path) {
+        public AWCore load_style_from_path (string enstl_path) {
             if (style_paths == null) {
                 style_paths = new List<string> ();
             }

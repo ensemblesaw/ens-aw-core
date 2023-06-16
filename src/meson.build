@@ -1,6 +1,6 @@
 interfaces = files(
     # Core
-    'interfaces/IArrangerWorkstation.vala',
+    'interfaces/IAWCore.vala',
 
     'interfaces/AudioEngine/ISynthEngine.vala',
     'interfaces/AudioEngine/ISynthProvider.vala',
@@ -14,7 +14,7 @@ interfaces = files(
 
 classes = files (
     # Core
-    'classes/ArrangerWorkstation.vala',
+    'classes/AWCore.vala',
 
     'classes/AudioEngine/SynthEngine.vala',
     'classes/AudioEngine/SynthProvider.vala',

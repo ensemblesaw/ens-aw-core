@@ -15,10 +15,10 @@ namespace Ensembles.ArrangerWorkstation.Analysers {
 
         private unowned Fluid.SoundFont soundfont;
 
-        private IArrangerWorkstation i_aw_core;
+        private IAWCore i_aw_core;
 
         public VoiceAnalyser (
-            IArrangerWorkstation i_aw_core,
+            IAWCore i_aw_core,
             ISynthProvider i_synth_provider,
             string sf_path,
             string sf_schema_path
