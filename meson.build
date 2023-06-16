@@ -60,6 +60,5 @@ libens_aw_core = shared_library (
 subdir ('po')
 
 ens_aw_core_dep = declare_dependency (
-    dependencies: dependencies,
     link_with: libens_aw_core
 )
