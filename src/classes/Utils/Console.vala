@@ -18,7 +18,7 @@ namespace Ensembles.ArrangerWorkstation {
         private const string BOLD = "\x1B[1m";
         private const string RESET = "\x1B[0m";
 
-        public static void get_console_header (string app_version, string display_version) {
+        public static void print_greetings (string app_version, string display_version) {
             print (MAG);
             print ("███████ ███    ██ ███████ ███████ ███    ███ ██████  ██      ███████ ███████\n");
             print ("██      ████   ██ ██      ██      ████  ████ ██   ██ ██      ██      ██\n");
