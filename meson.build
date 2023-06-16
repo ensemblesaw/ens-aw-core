@@ -50,9 +50,10 @@ dependencies = [
 subdir ('src')
 
 # Define shared library
-libens_aw_core = shared_library (
+libens_aw_core = static_library (
     meson.project_name () + '-' + meson.project_version().split('.')[0],
     sources,
+    vala_header: 'ens_aw_core.h',
     dependencies: dependencies,
     install: true,
     install_dir: [true, true, true]
