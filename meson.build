@@ -1,6 +1,6 @@
 # Project name, programming language and version
 project (
-    'ensawcore',
+    'ens-aw-core',
     'c', 'vala',
     version: '0.1.0',
     meson_version: '>=0.57.0'
@@ -50,7 +50,7 @@ dependencies = [
 subdir ('src')
 
 # Define shared library
-libensawcore = shared_library (
+libens_aw_core = shared_library (
     meson.project_name () + '-' + meson.project_version().split('.')[0],
     sources,
     dependencies: dependencies,
@@ -59,7 +59,7 @@ libensawcore = shared_library (
 
 subdir ('po')
 
-ensawcoredep = declare_dependency (
+ens_aw_core_dep = declare_dependency (
     dependencies: dependencies,
     link_with: libens_aw_core
 )
