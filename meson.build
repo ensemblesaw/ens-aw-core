@@ -50,7 +50,7 @@ dependencies = [
 subdir ('src')
 
 # Define shared library
-lib_ens_core = shared_library (
+libens_aw_core = shared_library (
     meson.project_name () + '-' + meson.project_version().split('.')[0],
     sources,
     dependencies: dependencies,
@@ -59,7 +59,7 @@ lib_ens_core = shared_library (
 
 subdir ('po')
 
-lib_ens_core_dep = declare_dependency (
+ens_aw_core_dep = declare_dependency (
     dependencies: dependencies,
-    link_with: lib_ens_core
+    link_with: libens_aw_core
 )
