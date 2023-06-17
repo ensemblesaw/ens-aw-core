@@ -67,6 +67,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             SynthProvider.synth_render_handler = process_audio;
 
             if (Fluid.is_soundfont (soundfont)) {
+                synth_provider.get_synth (SynthType.UTILITY).sfload (soundfont, true);
                 soundfont_id = rendering_synth.sfload (soundfont, true);
 
                 // Initialize Voices

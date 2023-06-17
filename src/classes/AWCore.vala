@@ -43,37 +43,20 @@ namespace Ensembles.ArrangerWorkstation {
 
         private Voice[] voices;
 
-        private string sf_path;
+        private string sf_path = "";
         private string sf_schema_path;
         private List<string> style_paths;
 
-        private AWCore () {
+        private AWCore () { }
 
-        }
-
-        public AWCore initialize () {
-            #if PIPEWIRE_CORE_DRIVER
-            Pipewire.init (null, null);
-            #endif
-            synth_provider = new AudioEngine.SynthProvider ();
-            synth_provider.init_driver ("pulseaudio", 0.3);
-            synth_provider.get_synth (AudioEngine.SynthType.UTILITY).sfload (sf_path, true);
-            Console.log ("Loading Soundfont from %s".printf (sf_path));
-            try {
-                main_dsp_rack = new DSPRack ();
-                voice_l_rack = new VoiceRack ();
-                voice_r1_rack = new VoiceRack ();
-                voice_r2_rack = new VoiceRack ();
-                synth_engine = new AudioEngine.SynthEngine (synth_provider, sf_path)
-                .add_rack (main_dsp_rack)
-                .add_rack (voice_l_rack)
-                .add_rack (voice_r1_rack)
-                .add_rack (voice_r2_rack);
-            } catch (FluidError e) {
-                Console.log (e.message, Console.LogLevel.ERROR);
+        public AWCore use_driver (string driver_name) {
+            if (synth_provider == null) {
+                #if PIPEWIRE_CORE_DRIVER
+                Pipewire.init (null, null);
+                #endif
+                synth_provider = new AudioEngine.SynthProvider ();
+                synth_provider.init_driver (driver_name, 0.3);
             }
-
-            build_events ();
 
             return this;
         }
@@ -81,7 +64,6 @@ namespace Ensembles.ArrangerWorkstation {
         public AWCore load_soundfont_from_path (string sf2_dir) {
             sf_path = sf2_dir + "/EnsemblesGM.sf2";
             sf_schema_path = sf2_dir + "/EnsemblesGMSchema.csv";
-
             return this;
         }
 
@@ -91,6 +73,25 @@ namespace Ensembles.ArrangerWorkstation {
             }
 
             style_paths.append (enstl_path);
+            return this;
+        }
+
+        public AWCore build_synth_engine () {
+            if (synth_engine == null) {
+                try {
+                    main_dsp_rack = new DSPRack ();
+                    voice_l_rack = new VoiceRack ();
+                    voice_r1_rack = new VoiceRack ();
+                    voice_r2_rack = new VoiceRack ();
+                    synth_engine = new AudioEngine.SynthEngine (synth_provider, sf_path)
+                    .add_rack (main_dsp_rack)
+                    .add_rack (voice_l_rack)
+                    .add_rack (voice_r1_rack)
+                    .add_rack (voice_r2_rack);
+                } catch (FluidError e) {
+                    Console.log (e.message, Console.LogLevel.ERROR);
+                }
+            }
 
             return this;
         }

@@ -16,16 +16,11 @@ namespace Ensembles.ArrangerWorkstation {
         public signal void ready();
         /** Sends verbose status for loading screen. */
         public signal void send_loading_status(string status);
-
-        /**
-         * Initializes the workstation, audio engine, loads drivers and
-         * plugin racks.
-         */
-        public abstract AWCore initialize ();
-
+        /** Use driver */
+        public abstract AWCore use_driver (string driver_name);
         public abstract AWCore load_soundfont_from_path (string sf2_dir);
-
         public abstract AWCore load_style_from_path (string enstl_path);
+        public abstract AWCore build_synth_engine ();
 
         /**
          * Load all data like voices, styles and plugins.
