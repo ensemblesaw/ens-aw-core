@@ -15,7 +15,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
      * The style engine can take care of style playback using the appropriate
      * chords and changing the style part.
      */
-    public class StyleEngine : Object, IStylePlayer {
+    public class StyleEngine : Object, IStyleEngine {
         // Style data
         private unowned Style style;
 

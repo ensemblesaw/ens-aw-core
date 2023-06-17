@@ -45,7 +45,7 @@ namespace Ensembles.ArrangerWorkstation {
 
         private string sf_path = "";
         private string sf_schema_path;
-        private List<string> style_paths;
+        private List<string> style_search_paths;
 
         private AWCore () { }
 
@@ -61,18 +61,18 @@ namespace Ensembles.ArrangerWorkstation {
             return this;
         }
 
-        public AWCore load_soundfont_from_path (string sf2_dir) {
-            sf_path = sf2_dir + "/EnsemblesGM.sf2";
-            sf_schema_path = sf2_dir + "/EnsemblesGMSchema.csv";
+        public AWCore add_soundfont (string sf2_dir, string? name = "EnsemblesGM") {
+            sf_path = sf2_dir + "/" + name + ".sf2";
+            sf_schema_path = sf2_dir + "/" + name + "Schema.csv";
             return this;
         }
 
-        public AWCore load_style_from_path (string enstl_path) {
-            if (style_paths == null) {
-                style_paths = new List<string> ();
+        public AWCore add_style_search_path (string style_search_path) {
+            if (style_search_paths == null) {
+                style_search_paths = new List<string> ();
             }
 
-            style_paths.append (enstl_path);
+            style_search_paths.append (style_search_path);
             return this;
         }
 
@@ -83,6 +83,7 @@ namespace Ensembles.ArrangerWorkstation {
                     voice_l_rack = new VoiceRack ();
                     voice_r1_rack = new VoiceRack ();
                     voice_r2_rack = new VoiceRack ();
+
                     synth_engine = new AudioEngine.SynthEngine (synth_provider, sf_path)
                     .add_rack (main_dsp_rack)
                     .add_rack (voice_l_rack)
@@ -99,7 +100,7 @@ namespace Ensembles.ArrangerWorkstation {
         /**
          * Load all data like voices, styles and plugins
          */
-        public async void load_data_async () {
+        public void load_data_async () {
             new Thread<void> ("ensembles-data-discovery", load_data);
         }
 
@@ -181,6 +182,14 @@ namespace Ensembles.ArrangerWorkstation {
             //  });
         }
 
+        public AudioEngine.ISynthEngine get_synth_engine () {
+            return synth_engine;
+        }
+
+        public MIDIPlayers.IStyleEngine get_style_engine () {
+            return style_engine;
+        }
+
         /**
          * Creates a style engine with given style
          *
@@ -217,8 +226,8 @@ namespace Ensembles.ArrangerWorkstation {
             }
         }
 
-        public unowned List<string> get_style_paths () {
-            return style_paths;
+        public unowned List<string> get_style_search_paths () {
+            return style_search_paths;
         }
 
         /**

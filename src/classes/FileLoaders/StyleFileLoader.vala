@@ -19,7 +19,7 @@ namespace Ensembles.ArrangerWorkstation.FileLoaders {
         public Style[] get_styles () {
             if (style_list == null) {
                 style_list = new List<Style?> ();
-                unowned List<string> style_paths = i_aw_core.get_style_paths ();
+                unowned List<string> style_paths = i_aw_core.get_style_search_paths ();
 
                 string path = "";
                 style_paths.foreach ((style_path) => {

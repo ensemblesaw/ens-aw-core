@@ -1,7 +1,7 @@
 using Ensembles.ArrangerWorkstation.Models;
 
 namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
-    public interface IStylePlayer : Object {
+    public interface IStyleEngine : Object {
         // State signals
         public signal void on_current_part_change (StylePartType part_type);
         public signal void on_next_part_change (StylePartType part_type);
