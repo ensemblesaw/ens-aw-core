@@ -17,20 +17,29 @@ namespace Ensembles.ArrangerWorkstation {
         /** Sends verbose status for loading screen. */
         public signal void send_loading_status(string status);
 
+        /**
+         * Initializes the workstation, audio engine, loads drivers and
+         * plugin racks.
+         */
+        public abstract AWCore initialize ();
+
         public abstract AWCore load_soundfont_from_path (string sf2_dir);
 
         public abstract AWCore load_style_from_path (string enstl_path);
 
         /**
-         * Load all data like voices, styles and plugins
+         * Load all data like voices, styles and plugins.
          */
         public abstract async void load_data_async ();
 
         /**
-         * Load all data like voices, styles and plugins
+         * Load all data like voices, styles and plugins.
          */
         public abstract void load_data ();
 
+        /**
+         * Get a list of paths from where the styles are searched.
+         */
         public abstract unowned List<string> get_style_paths ();
     }
 }

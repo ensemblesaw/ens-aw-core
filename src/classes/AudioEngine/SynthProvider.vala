@@ -27,8 +27,6 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
 
         public static SynthRenderHandler synth_render_handler;
 
-        private static SynthProvider _instance = null;
-
         ~SynthProvider () {
             Fluid.free (wet_buffer_l);
             Fluid.free (wet_buffer_r);

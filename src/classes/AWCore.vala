@@ -19,7 +19,7 @@ namespace Ensembles.ArrangerWorkstation {
         private static AWCore _instance;
         public static AWCore instance {
             get {
-                if (_instance != null) {
+                if (_instance == null) {
                     _instance = new AWCore ();
                 }
 
@@ -47,7 +47,11 @@ namespace Ensembles.ArrangerWorkstation {
         private string sf_schema_path;
         private List<string> style_paths;
 
-        construct {
+        private AWCore () {
+
+        }
+
+        public AWCore initialize () {
             #if PIPEWIRE_CORE_DRIVER
             Pipewire.init (null, null);
             #endif
@@ -56,29 +60,22 @@ namespace Ensembles.ArrangerWorkstation {
             synth_provider.get_synth (AudioEngine.SynthType.UTILITY).sfload (sf_path, true);
             Console.log ("Loading Soundfont from %s".printf (sf_path));
             try {
-                synth_engine = new AudioEngine.SynthEngine (synth_provider, sf_path);
+                main_dsp_rack = new DSPRack ();
+                voice_l_rack = new VoiceRack ();
+                voice_r1_rack = new VoiceRack ();
+                voice_r2_rack = new VoiceRack ();
+                synth_engine = new AudioEngine.SynthEngine (synth_provider, sf_path)
+                .add_rack (main_dsp_rack)
+                .add_rack (voice_l_rack)
+                .add_rack (voice_r1_rack)
+                .add_rack (voice_r2_rack);
             } catch (FluidError e) {
                 Console.log (e.message, Console.LogLevel.ERROR);
             }
 
-            Console.log ("Initializing Plugin Racks");
-            main_dsp_rack = new DSPRack ();
-            synth_engine.add_rack (main_dsp_rack);
-
-            voice_l_rack = new VoiceRack ();
-            synth_engine.add_rack (voice_l_rack);
-
-            voice_r1_rack = new VoiceRack ();
-            synth_engine.add_rack (voice_r1_rack);
-
-            voice_r2_rack = new VoiceRack ();
-            synth_engine.add_rack (voice_r2_rack);
-
             build_events ();
-        }
 
-        private AWCore () {
-
+            return this;
         }
 
         public AWCore load_soundfont_from_path (string sf2_dir) {
