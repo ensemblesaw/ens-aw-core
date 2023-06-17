@@ -33,7 +33,6 @@ classes = files (
     'classes/Racks/VoiceRack.vala',
 
     # Utilities
-    'classes/Utils/Console.vala',
     'classes/Utils/ErrorDomains.vala',
     'classes/Utils/StyleMIDIModifiers.vala',
     'classes/Utils/MIDI.vala',
