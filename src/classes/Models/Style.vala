@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-namespace Ensembles.ArrangerWorkstation.Models {
+namespace Ensembles.Models {
     /**
      * Data structure representing auto accompaniment styles
      */

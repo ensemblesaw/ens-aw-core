@@ -6,7 +6,7 @@
 using Ensembles.ArrangerWorkstation.MIDIPlayers;
 using Ensembles.ArrangerWorkstation.Plugins;
 using Ensembles.ArrangerWorkstation.Racks;
-using Ensembles.ArrangerWorkstation.Models;
+using Ensembles.Models;
 
 namespace Ensembles.ArrangerWorkstation {
     /**

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-namespace Ensembles.ArrangerWorkstation.Models {
+namespace Ensembles.Models {
     public struct Registry {
         public Voice voice_r1;
         public Voice voice_r2;

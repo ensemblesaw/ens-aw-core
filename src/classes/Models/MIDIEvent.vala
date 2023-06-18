@@ -1,4 +1,4 @@
-namespace Ensembles.ArrangerWorkstation.Models {
+namespace Ensembles.Models {
     public class MIDIEvent {
         public enum EventType {
             /** This event is sent when a note is released (ended). */

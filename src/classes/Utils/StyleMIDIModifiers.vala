@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-using Ensembles.ArrangerWorkstation.Models;
+using Ensembles.Models;
 
 namespace Ensembles.ArrangerWorkstation {
     public class StyleMIDIModifers {

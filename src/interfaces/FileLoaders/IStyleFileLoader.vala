@@ -1,4 +1,4 @@
-using Ensembles.ArrangerWorkstation.Models;
+using Ensembles.Models;
 
 namespace Ensembles.ArrangerWorkstation.FileLoaders {
     public interface IStyleFileLoader : Object {

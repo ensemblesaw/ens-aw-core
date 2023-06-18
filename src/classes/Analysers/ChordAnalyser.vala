@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-using Ensembles.ArrangerWorkstation.Models;
+using Ensembles.Models;
 
 namespace Ensembles.ArrangerWorkstation.Analysers {
     public class ChordAnalyser : Object {
@@ -21,12 +21,12 @@ namespace Ensembles.ArrangerWorkstation.Analysers {
             chord_possibility = new uint8[144];
         }
 
-        /** This function returns an inferred {@link Ensembles.ArrangerWorkstation.Models.Chord} based on subsequent
+        /** This function returns an inferred {@link Ensembles.Models.Chord} based on subsequent
           * invocations of note-on and note-off events
           *
           * @param key Key or note number
           * @param on Whether the key is pressed or released
-          * @return A {@link Ensembles.ArrangerWorkstation.Models.Chord} as determined from subsequent keypresses
+          * @return A {@link Ensembles.Models.Chord} as determined from subsequent keypresses
           */
         public Chord infer (uint8 key, bool on) {
             key_track [key % 12] = on ? 1 : 0;

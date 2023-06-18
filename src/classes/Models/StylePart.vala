@@ -1,5 +1,5 @@
 
-namespace Ensembles.ArrangerWorkstation.Models {
+namespace Ensembles.Models {
     public enum StylePartType {
         INTRO_1,
         INTRO_2,
