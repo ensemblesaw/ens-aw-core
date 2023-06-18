@@ -50,8 +50,8 @@ dependencies = [
 
 subdir ('src')
 
-# Define shared library
-libens_aw_core = shared_library (
+# Define library
+libens_aw_core = static_library (
     meson.project_name () + '-' + meson.project_version().split('.')[0],
     sources,
     dependencies: dependencies,
