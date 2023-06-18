@@ -535,7 +535,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
         /**
          * Starts style playback if not already playing.
          */
-        public void play () {
+        private void play () {
             if (style_player.get_status () != Fluid.PlayerStatus.PLAYING) {
                 next_part = current_part;
                 synth_engine.stop_all_sounds ();
@@ -547,7 +547,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
         /**
          * Stops the style playback if already playing.
          */
-        public void stop () {
+        private void stop () {
             if (style_player.get_status () == Fluid.PlayerStatus.PLAYING) {
                 style_player.stop ();
                 halt_continuous_notes ();
@@ -559,7 +559,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
          * Plays the style if not already playing
          * or stops the style if playing.
          */
-        public void toggle_play () {
+        private void toggle_play () {
             if (style_player.get_status () != Fluid.PlayerStatus.PLAYING) {
                 play ();
             } else {
@@ -576,7 +576,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
          *
          * @param part The style part to queue
          */
-        public void queue_next_part (StylePartType part) {
+        private void queue_next_part (StylePartType part) {
             // Wait for measure end if already playing else instantly change part
             if (style_player.get_status () == Fluid.PlayerStatus.PLAYING) {
                 if (part != StylePartType.INTRO_1 &&
@@ -627,7 +627,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
          * Inserts a minimum voice section during playback. It could be a short
          * build-up or a drop.
          */
-        public void break_play () {
+        private void break_play () {
             if (style_player.get_status () == Fluid.PlayerStatus.PLAYING) {
                 queue_break = true;
                 on_break_change (true);
@@ -638,7 +638,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
          * Start the style playback with chord input or stop the style
          * playback on the next measure.
          */
-        public void sync () {
+        private void sync () {
             if (style_player.get_status () == Fluid.PlayerStatus.PLAYING) {
                 sync_start = false;
                 sync_stop = !sync_stop;
@@ -658,7 +658,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
          *
          * @param current_tempo Variable to store the current tempo
          */
-        public bool stop_and_wait (out uint8 current_tempo) {
+        private bool stop_and_wait (out uint8 current_tempo) {
             current_tempo = 0;
             if (style_player.get_status () == Fluid.PlayerStatus.PLAYING) {
                 sync_stop = true;
@@ -679,7 +679,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
          *
          * @param chord The chord to change to
          */
-        public void change_chord (Chord chord) {
+        private void change_chord (Chord chord) {
             if (chord.root != ChordRoot.NONE) {
                 queue_chord_change = true;
             }

@@ -3,6 +3,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+using Ensembles.ArrangerWorkstation.Plugins;
+using Ensembles.ArrangerWorkstation.Racks;
+using Ensembles.ArrangerWorkstation.Models;
+
 namespace Ensembles.ArrangerWorkstation {
     /**
      * ## Arranger Workstation
@@ -62,6 +66,28 @@ namespace Ensembles.ArrangerWorkstation {
          * Get a list of paths from where the styles are searched.
          */
         public abstract unowned List<string> get_style_search_paths ();
+        /**
+         * Returns an array of styles loaded by the arranger workstation.
+         */
+        public abstract unowned Style[] get_styles ();
+        /**
+         * Creates a style engine with given style
+         *
+         * @param style A Style descriptor
+         */
+        public abstract void queue_change_style (Models.Style style);
+        /**
+         * Returns an array of voices loaded by the arranger workstation.
+         */
+        public abstract unowned Voice[] get_voices ();
+
+        public abstract unowned List<AudioPlugins.AudioPlugin> get_audio_plugins ();
+
+        public abstract unowned Racks.DSPRack get_main_dsp_rack ();
+
+        public abstract unowned Racks.VoiceRack get_voice_rack (
+            VoiceHandPosition position
+        );
 
         // Module Interfaces ///////////////////////////////////////////////////
         public abstract AudioEngine.ISynthEngine get_synth_engine ();

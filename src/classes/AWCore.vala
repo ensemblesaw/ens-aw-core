@@ -49,7 +49,7 @@ namespace Ensembles.ArrangerWorkstation {
 
         private AWCore () { }
 
-        public AWCore use_driver (string driver_name) {
+        private AWCore use_driver (string driver_name) {
             if (synth_provider == null) {
                 #if PIPEWIRE_CORE_DRIVER
                 Pipewire.init (null, null);
@@ -61,13 +61,13 @@ namespace Ensembles.ArrangerWorkstation {
             return this;
         }
 
-        public AWCore add_soundfont (string sf2_dir, string? name = "EnsemblesGM") {
+        private AWCore add_soundfont (string sf2_dir, string? name = "EnsemblesGM") {
             sf_path = sf2_dir + "/" + name + ".sf2";
             sf_schema_path = sf2_dir + "/" + name + "Schema.csv";
             return this;
         }
 
-        public AWCore add_style_search_path (string style_search_path) {
+        private AWCore add_style_search_path (string style_search_path) {
             if (style_search_paths == null) {
                 style_search_paths = new List<string> ();
             }
@@ -76,7 +76,7 @@ namespace Ensembles.ArrangerWorkstation {
             return this;
         }
 
-        public AWCore build_synth_engine () {
+        private AWCore build_synth_engine () {
             if (synth_engine == null) {
                 try {
                     main_dsp_rack = new DSPRack ();
@@ -97,14 +97,35 @@ namespace Ensembles.ArrangerWorkstation {
             return this;
         }
 
+        private void add_plugins_to_voice_racks () {
+            unowned List<AudioPlugins.AudioPlugin> plugins =
+            plugin_manager.audio_plugins;
+            for (uint32 i = 0; i < plugins.length (); i++) {
+                if (plugins.nth_data (i).category ==
+                AudioPlugins.AudioPlugin.Category.VOICE) {
+                    try {
+                        voice_l_rack.append (plugins.nth_data (i).duplicate ());
+                        voice_r1_rack.append (plugins.nth_data (i).duplicate ());
+                        voice_r2_rack.append (plugins.nth_data (i).duplicate ());
+                    } catch (PluginError e) {
+
+                    }
+                }
+            }
+
+            voice_l_rack.active = true;
+            voice_r1_rack.active = true;
+            voice_r2_rack.active = true;
+        }
+
         /**
          * Load all data like voices, styles and plugins
          */
-        public void load_data_async () {
+        private void load_data_async () {
             new Thread<void> ("ensembles-data-discovery", load_data);
         }
 
-        public void load_data () {
+        private void load_data () {
             Thread.usleep (500000);
             // Load Styles
             Console.log ("Searching for styles…");
@@ -149,11 +170,11 @@ namespace Ensembles.ArrangerWorkstation {
             });
         }
 
-        public AudioEngine.ISynthEngine get_synth_engine () {
+        private AudioEngine.ISynthEngine get_synth_engine () {
             return synth_engine;
         }
 
-        public MIDIPlayers.IStyleEngine get_style_engine () {
+        private MIDIPlayers.IStyleEngine get_style_engine () {
             return style_engine;
         }
 
@@ -162,7 +183,7 @@ namespace Ensembles.ArrangerWorkstation {
          *
          * @param style A Style descriptor
          */
-        public void queue_change_style (Models.Style style) {
+        private void queue_change_style (Models.Style style) {
             Console.log ("Changing style to the " + style.to_string ());
             next_style = style;
             if (!stopping_style) {
@@ -193,54 +214,33 @@ namespace Ensembles.ArrangerWorkstation {
             }
         }
 
-        public unowned List<string> get_style_search_paths () {
+        private unowned List<string> get_style_search_paths () {
             return style_search_paths;
         }
 
         /**
          * Returns an array of styles loaded by the arranger workstation.
          */
-        public unowned Style[] get_styles () {
+        private unowned Style[] get_styles () {
             return styles;
         }
 
         /**
          * Returns an array of voices loaded by the arranger workstation.
          */
-        public unowned Voice[] get_voices () {
+        private unowned Voice[] get_voices () {
             return voices;
         }
 
-        private void add_plugins_to_voice_racks () {
-            unowned List<AudioPlugins.AudioPlugin> plugins =
-            plugin_manager.audio_plugins;
-            for (uint32 i = 0; i < plugins.length (); i++) {
-                if (plugins.nth_data (i).category ==
-                AudioPlugins.AudioPlugin.Category.VOICE) {
-                    try {
-                        voice_l_rack.append (plugins.nth_data (i).duplicate ());
-                        voice_r1_rack.append (plugins.nth_data (i).duplicate ());
-                        voice_r2_rack.append (plugins.nth_data (i).duplicate ());
-                    } catch (PluginError e) {
-
-                    }
-                }
-            }
-
-            voice_l_rack.active = true;
-            voice_r1_rack.active = true;
-            voice_r2_rack.active = true;
-        }
-
-        public unowned List<AudioPlugins.AudioPlugin> get_audio_plugins () {
+        private unowned List<AudioPlugins.AudioPlugin> get_audio_plugins () {
             return plugin_manager.audio_plugins;
         }
 
-        public unowned Racks.DSPRack get_main_dsp_rack () {
+        private unowned Racks.DSPRack get_main_dsp_rack () {
             return main_dsp_rack;
         }
 
-        public unowned Racks.VoiceRack get_voice_rack (
+        private unowned Racks.VoiceRack get_voice_rack (
             VoiceHandPosition position
         ) {
             switch (position) {

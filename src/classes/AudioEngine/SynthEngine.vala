@@ -92,7 +92,12 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             set_synth_defaults ();
         }
 
-        public void set_voice (VoiceHandPosition hand_position, uint8 bank, uint8 preset) {
+        private SynthEngine add_rack (Racks.Rack rack) {
+            racks.append (rack);
+            return this;
+        }
+
+        private void set_voice (VoiceHandPosition hand_position, uint8 bank, uint8 preset) {
             uint8 channel = 17;
             switch (hand_position) {
                 case VoiceHandPosition.LEFT:
@@ -157,7 +162,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             edit_master_chorus (2);
         }
 
-        public void play_intro_sound () {
+        private void play_intro_sound () {
             Timeout.add (200, () => {
                 rendering_synth.noteon (23, 65, 110);
                 return false;
@@ -201,16 +206,11 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             }
         }
 
-        public SynthEngine add_rack (Racks.Rack rack) {
-            racks.append (rack);
-            return this;
-        }
-
-        public static uint32 get_buffer_size () {
+        internal static uint32 get_buffer_size () {
             return buffer_size;
         }
 
-        public static int64 get_process_start_time () {
+        internal static int64 get_process_start_time () {
             return processing_start_time;
         }
 

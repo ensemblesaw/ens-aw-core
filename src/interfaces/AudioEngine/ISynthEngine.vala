@@ -1,9 +1,12 @@
 namespace Ensembles.ArrangerWorkstation.AudioEngine {
     public interface ISynthEngine : Object {
+        public abstract SynthEngine add_rack (Racks.Rack rack);
+        // Signals /////////////////////////////////////////////////////////////
         // MIDI Output
         public signal int on_midi_event (Fluid.MIDIEvent event);
         public signal int on_midi_event_from_player (Fluid.MIDIEvent event);
 
+        // Functions ///////////////////////////////////////////////////////////
         // MIDI Input
         public abstract int send_midi_event_for_player (Fluid.MIDIEvent event);
         public abstract int send_midi_event (Fluid.MIDIEvent event);
