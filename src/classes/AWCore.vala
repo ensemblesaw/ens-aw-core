@@ -149,39 +149,6 @@ namespace Ensembles.ArrangerWorkstation {
             });
         }
 
-        private void build_events () {
-            //  Application.event_bus.style_play_toggle.connect (() => {
-            //      if (style_engine != null) {
-            //          style_engine.toggle_play ();
-            //      }
-            //  });
-
-            //  Application.event_bus.style_set_part.connect (
-            //      (part) => {
-            //          if (style_engine != null) {
-            //              style_engine.queue_next_part (part);
-            //          }
-            //      }
-            //  );
-
-            //  Application.event_bus.style_break.connect (() => {
-            //      if (style_engine != null) {
-            //          style_engine.break_play ();
-            //      }
-            //  });
-
-            //  Application.event_bus.style_sync.connect (() => {
-            //      if (style_engine != null) {
-            //          style_engine.sync ();
-            //      }
-            //  });
-
-            //  Application.event_bus.style_change.connect (
-            //      (style) => {
-            //      queue_change_style (style);
-            //  });
-        }
-
         public AudioEngine.ISynthEngine get_synth_engine () {
             return synth_engine;
         }
