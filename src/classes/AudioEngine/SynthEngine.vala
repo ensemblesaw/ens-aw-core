@@ -249,7 +249,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             bool handled = false;
 
             var fluid_midi_ev = new Fluid.MIDIEvent ();
-            fluid_midi_ev.set_type (event.type);
+            fluid_midi_ev.set_type (event.event_type);
             fluid_midi_ev.set_channel (event.channel);
             fluid_midi_ev.set_control (event.control);
             fluid_midi_ev.set_value (event.value);

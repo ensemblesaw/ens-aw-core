@@ -84,7 +84,7 @@ namespace Ensembles.ArrangerWorkstation.Models {
             CHORUS = 0x5D
         }
 
-        public EventType type { get; set; }
+        public EventType event_type { get; set; }
         public uint8 channel { get; set; }
         public Control control { get; set; }
         public uint8 value { get; set; }
