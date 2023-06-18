@@ -44,6 +44,7 @@ classes = files (
     'classes/Models/Voice.vala',
     'classes/Models/Style.vala',
     'classes/Models/StylePart.vala',
+    'classes/Models/MIDIEvent.vala',
 
     # Plugins
     'classes/Plugins/Plugin.vala',

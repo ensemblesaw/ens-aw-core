@@ -461,7 +461,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
 
             // If alt channels is enabled, that means it will disable half of
             // the channels based on the scale type
-            if (type == MIDI.EventType.NOTE_ON && alt_channels_active) {
+            if (type == MIDIEvent.EventType.NOTE_ON && alt_channels_active) {
                 if (style.scale_type != chord.type) {
                     if (channel == 0 ||
                         channel == 2 ||
@@ -494,19 +494,19 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
             // Track which notes are on so that they can be continued after
             // chord change
             if (channel < 9 || channel > 10) {
-                if (type == MIDI.EventType.NOTE_ON) {
+                if (type == MIDIEvent.EventType.NOTE_ON) {
                     // The shift allows storing two intergers in one.
                     // This way we can store both key and velocity in one int.
                     // It is reteived in `resend_key ()` function
                     channel_note_on[channel] = key | (velocity << 16);
-                } else if (type == MIDI.EventType.NOTE_OFF) {
+                } else if (type == MIDIEvent.EventType.NOTE_OFF) {
                     channel_note_on[channel] = -1;
                 }
             }
 
             // Modify tonal channels with chord
             if (channel != 9 && channel != 10 &&
-               (type == MIDI.EventType.NOTE_ON || type == MIDI.EventType.NOTE_OFF)) {
+               (type == MIDIEvent.EventType.NOTE_ON || type == MIDIEvent.EventType.NOTE_OFF)) {
                 new_event.set_key (StyleMIDIModifers.modify_key_by_chord (key, chord,
                     style.scale_type, alt_channels_active));
             }
@@ -523,7 +523,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
         private void resend_key (int value, int channel) {
             var new_event = new Fluid.MIDIEvent ();
             new_event.set_channel (channel);
-            new_event.set_type (MIDI.EventType.NOTE_ON);
+            new_event.set_type (MIDIEvent.EventType.NOTE_ON);
             // Decode key and velocity from the integer value
             new_event.set_key (StyleMIDIModifers.modify_key_by_chord (value & 0xFFFF,
                 chord, style.scale_type, alt_channels_active));

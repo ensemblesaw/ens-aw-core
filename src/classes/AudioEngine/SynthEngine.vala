@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+using Ensembles.ArrangerWorkstation.Models;
+
 namespace Ensembles.ArrangerWorkstation.AudioEngine {
     /**
      * ## Synthesizer
@@ -115,44 +117,44 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
 
         private void set_synth_defaults () {
             // CutOff for Realtime synth
-            rendering_synth.cc (17, MIDI.Control.CUT_OFF, 40);
-            rendering_synth.cc (18, MIDI.Control.CUT_OFF, 0);
-            rendering_synth.cc (19, MIDI.Control.CUT_OFF, 0);
+            rendering_synth.cc (17, MIDIEvent.Control.CUT_OFF, 40);
+            rendering_synth.cc (18, MIDIEvent.Control.CUT_OFF, 0);
+            rendering_synth.cc (19, MIDIEvent.Control.CUT_OFF, 0);
 
             // Reverb and Chorus for R1 voice
-            rendering_synth.cc (17, MIDI.Control.REVERB, 100);
-            rendering_synth.cc (17, MIDI.Control.CHORUS, 100);
+            rendering_synth.cc (17, MIDIEvent.Control.REVERB, 100);
+            rendering_synth.cc (17, MIDIEvent.Control.CHORUS, 100);
 
             // Reverb and Chorus for intro tone
-            rendering_synth.cc (23, MIDI.Control.REVERB, 127);
-            rendering_synth.cc (23, MIDI.Control.CHORUS, 100);
-            rendering_synth.cc (23, MIDI.Control.CUT_OFF, 40);
-            rendering_synth.cc (23, MIDI.Control.RESONANCE, 80);
+            rendering_synth.cc (23, MIDIEvent.Control.REVERB, 127);
+            rendering_synth.cc (23, MIDIEvent.Control.CHORUS, 100);
+            rendering_synth.cc (23, MIDIEvent.Control.CUT_OFF, 40);
+            rendering_synth.cc (23, MIDIEvent.Control.RESONANCE, 80);
 
             // Reverb and Chorus for Metronome
-            rendering_synth.cc (16, MIDI.Control.REVERB, 0);
-            rendering_synth.cc (16, MIDI.Control.CHORUS, 0);
+            rendering_synth.cc (16, MIDIEvent.Control.REVERB, 0);
+            rendering_synth.cc (16, MIDIEvent.Control.CHORUS, 0);
 
             // Default gain for Realtime synth
-            rendering_synth.cc (17, MIDI.Control.GAIN, 100);
-            rendering_synth.cc (18, MIDI.Control.GAIN, 90);
-            rendering_synth.cc (19, MIDI.Control.GAIN, 80);
+            rendering_synth.cc (17, MIDIEvent.Control.GAIN, 100);
+            rendering_synth.cc (18, MIDIEvent.Control.GAIN, 90);
+            rendering_synth.cc (19, MIDIEvent.Control.GAIN, 80);
 
 
             // Default pitch of all synths
             for (int i = 17; i < 64; i++) {
-                rendering_synth.cc (i, MIDI.Control.EXPLICIT_PITCH, 64);
+                rendering_synth.cc (i, MIDIEvent.Control.EXPLICIT_PITCH, 64);
             }
 
             // Default cut-off and resonance for recorder
             for (int i = 24; i < 64; i++) {
-                rendering_synth.cc (i, MIDI.Control.CUT_OFF, 40);
-                rendering_synth.cc (i, MIDI.Control.RESONANCE, 10);
+                rendering_synth.cc (i, MIDIEvent.Control.CUT_OFF, 40);
+                rendering_synth.cc (i, MIDIEvent.Control.RESONANCE, 10);
             }
 
             // Default pitch for styles
             for (int i = 0; i < 16; i++) {
-                rendering_synth.cc (i, MIDI.Control.EXPLICIT_PITCH, 64);
+                rendering_synth.cc (i, MIDIEvent.Control.EXPLICIT_PITCH, 64);
             }
 
             set_master_reverb_active (true);
@@ -243,12 +245,19 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             }
         }
 
-        private int send_midi_event (Fluid.MIDIEvent event) {
+        private int send_midi_event (MIDIEvent event) {
             bool handled = false;
+
+            var fluid_midi_ev = new Fluid.MIDIEvent ();
+            fluid_midi_ev.set_type (event.type);
+            fluid_midi_ev.set_channel (event.channel);
+            fluid_midi_ev.set_control (event.control);
+            fluid_midi_ev.set_value (event.value);
+            fluid_midi_ev.set_velocity (event.velocity);
             foreach (var rack in racks) {
                 var voice_rack = rack as Racks.VoiceRack;
                 if (voice_rack != null) {
-                    if (voice_rack.send_midi_event (event) == Fluid.OK) {
+                    if (voice_rack.send_midi_event (fluid_midi_ev) == Fluid.OK) {
                         handled = true;
                     }
                 }
@@ -260,7 +269,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
                 return Fluid.OK;
             }
 
-            return rendering_synth.handle_midi_event (event);
+            return rendering_synth.handle_midi_event (fluid_midi_ev);
         }
 
         public int send_midi_event_for_player (Fluid.MIDIEvent event) {
@@ -269,9 +278,9 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             int cont = event.get_control ();
             int value= event.get_value ();
 
-            if (type == MIDI.EventType.CONTROL_CHANGE) {
+            if (type == MIDIEvent.EventType.CONTROL_CHANGE) {
                 if (
-                    cont == MIDI.Control.EXPLICIT_BANK_SELECT &&
+                    cont == MIDIEvent.Control.EXPLICIT_BANK_SELECT &&
                     (value == 1 || value == 8 || value == 16 || value == 126)
                 ) {
                     int sf_id, program_id, bank_id;
@@ -279,14 +288,14 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
                     rendering_synth.program_select (chan, soundfont_id, value, program_id);
                 }
 
-                if (cont == MIDI.Control.GAIN) {
+                if (cont == MIDIEvent.Control.GAIN) {
                     if (style_gain_settings.gain[chan] >= 0) {
                         event.set_value (style_gain_settings.gain[chan]);
                     }
                 }
 
-                if (cont == MIDI.Control.PAN) {
-                    if (modulator_settings.get_mod_buffer_value (MIDI.Control.PAN, (uint8)chan) >= -64) {
+                if (cont == MIDIEvent.Control.PAN) {
+                    if (modulator_settings.get_mod_buffer_value (MIDIEvent.Control.PAN, (uint8)chan) >= -64) {
                         event.set_value (modulator_settings.get_mod_buffer_value (10, (uint8)chan));
                     }
                 } else {
@@ -298,7 +307,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
                 }
             }
 
-            if (type == MIDI.EventType.NOTE_ON) {
+            if (type == MIDIEvent.EventType.NOTE_ON) {
                 //  velocity_buffer[chan] = value;
             }
 
