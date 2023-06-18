@@ -89,5 +89,54 @@ namespace Ensembles.Models {
         public Control control { get; set; }
         public uint8 value { get; set; }
         public uint8 velocity { get; set; }
+        public uint8 key { get; set; }
+        public uint8 pitch { get; set; }
+        public string? text { get; set; }
+        public string? lyrics { get; set; }
+
+        public MIDIEvent of_type (EventType event_type) {
+            this.event_type = event_type;
+            return this;
+        }
+
+        public MIDIEvent on_channel (uint8 channel) {
+            this.channel = channel;
+            return this;
+        }
+
+        public MIDIEvent controlling (Control control) {
+            this.control = control;
+            return this;
+        }
+
+        public MIDIEvent with_value (uint8 value) {
+            this.value = value;
+            return this;
+        }
+
+        public MIDIEvent with_key (uint8 key) {
+            this.key = key;
+            return this;
+        }
+
+        public MIDIEvent of_velocity (uint8 velocity) {
+            this.velocity = velocity;
+            return this;
+        }
+
+        public MIDIEvent pitch_shifted_by (uint8 pitch) {
+            this.pitch = pitch;
+            return this;
+        }
+
+        public MIDIEvent with_text (string? text) {
+            this.text = text;
+            return this;
+        }
+
+        public MIDIEvent with_lyrics (string? lyrics) {
+            this.lyrics = lyrics;
+            return this;
+        }
     }
 }
