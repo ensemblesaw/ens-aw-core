@@ -4,6 +4,10 @@
  */
 
 namespace Ensembles.ArrangerWorkstation {
+    protected errordomain BuildError {
+        MISSING_PARAMETER
+    }
+
     protected errordomain FluidError {
         INVALID_SF
     }

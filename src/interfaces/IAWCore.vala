@@ -15,37 +15,6 @@ namespace Ensembles.ArrangerWorkstation {
      * stuff that make every beat beat and every sound sound.
      */
     public interface IAWCore : Object {
-        // Builder functions ///////////////////////////////////////////////////
-        // These are mandatory
-        /**
-         * Specify the driver to use.
-         *
-         * @param driver_name name of driver to use
-         */
-        public abstract AWCore use_driver (string driver_name);
-        /**
-         * Specify soundfont from the given directory.
-         * The soundfont can have a schema `csv` file which can be used
-         * for categorization.
-         *
-         * @param sf2_dir directory where the soundfont is located
-         * @param name the name of soundfont to use
-         */
-        public abstract AWCore add_soundfont (
-            string sf2_dir,
-            string? name = "EnsemblesGM"
-        );
-        /**
-         * Specify the paths to search for `enstl` styles.
-         *
-         * @param style_search_path the directory path where styles are located
-         */
-        public abstract AWCore add_style_search_path (string style_search_path);
-        /** Creates the synthesizer instance. */
-        public abstract AWCore build_synth_engine ();
-
-
-
         // Signals /////////////////////////////////////////////////////////////
         /** Signals when the arranger is done loading data. */
         public signal void ready();

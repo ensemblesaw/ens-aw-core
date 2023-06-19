@@ -16,17 +16,6 @@ namespace Ensembles.ArrangerWorkstation {
      * stuff that make every beat beat and every sound sound.
      */
     public class AWCore : Object, IAWCore {
-        private static AWCore _instance;
-        public static AWCore instance {
-            get {
-                if (_instance == null) {
-                    _instance = new AWCore ();
-                }
-
-                return _instance;
-            }
-        }
-
         private AudioEngine.SynthProvider synth_provider;
         private AudioEngine.SynthEngine synth_engine;
         private StyleEngine style_engine;
@@ -47,54 +36,70 @@ namespace Ensembles.ArrangerWorkstation {
         private string sf_schema_path;
         private List<string> style_search_paths;
 
-        private AWCore () { }
+        protected AWCore (Builder builder) {
+            #if PIPEWIRE_CORE_DRIVER
+            Pipewire.init (null, null);
+            #endif
+            synth_provider = new AudioEngine.SynthProvider ();
+            synth_provider.init_driver (builder.driver_name, 0.3);
 
-        private AWCore use_driver (string driver_name) {
-            if (synth_provider == null) {
-                #if PIPEWIRE_CORE_DRIVER
-                Pipewire.init (null, null);
-                #endif
-                synth_provider = new AudioEngine.SynthProvider ();
-                synth_provider.init_driver (driver_name, 0.3);
+            sf_path = builder.sf2_dir + "/" + builder.sf2_name + ".sf2";
+            sf_schema_path = builder.sf2_dir + "/" + builder.sf2_name + "Schema.csv";
+
+            for (uint i = 0; i < builder.enstl_search_paths.length; i++) {
+                this.style_search_paths.append (builder.enstl_search_paths[i]);
             }
 
-            return this;
+            try {
+                main_dsp_rack = new DSPRack ();
+                voice_l_rack = new VoiceRack ();
+                voice_r1_rack = new VoiceRack ();
+                voice_r2_rack = new VoiceRack ();
+
+                synth_engine = new AudioEngine.SynthEngine (synth_provider, sf_path)
+                .add_rack (main_dsp_rack)
+                .add_rack (voice_l_rack)
+                .add_rack (voice_r1_rack)
+                .add_rack (voice_r2_rack);
+            } catch (FluidError e) {
+                Console.log (e.message, Console.LogLevel.ERROR);
+            }
         }
 
-        private AWCore add_soundfont (string sf2_dir, string? name = "EnsemblesGM") {
-            sf_path = sf2_dir + "/" + name + ".sf2";
-            sf_schema_path = sf2_dir + "/" + name + "Schema.csv";
-            return this;
-        }
+        public struct Builder {
+            string driver_name;
+            string sf2_dir;
+            string sf2_name;
+            string[] enstl_search_paths;
 
-        private AWCore add_style_search_path (string style_search_path) {
-            if (style_search_paths == null) {
-                style_search_paths = new List<string> ();
+            public Builder using_driver (string driver_name) {
+                this.driver_name = driver_name;
+                return this;
             }
 
-            style_search_paths.append (style_search_path);
-            return this;
-        }
+            public Builder load_sf_from (string path, string? name = "EnsemblesGM") {
+                sf2_dir = path;
+                sf2_name = name;
+                return this;
+            }
 
-        private AWCore build_synth_engine () {
-            if (synth_engine == null) {
-                try {
-                    main_dsp_rack = new DSPRack ();
-                    voice_l_rack = new VoiceRack ();
-                    voice_r1_rack = new VoiceRack ();
-                    voice_r2_rack = new VoiceRack ();
-
-                    synth_engine = new AudioEngine.SynthEngine (synth_provider, sf_path)
-                    .add_rack (main_dsp_rack)
-                    .add_rack (voice_l_rack)
-                    .add_rack (voice_r1_rack)
-                    .add_rack (voice_r2_rack);
-                } catch (FluidError e) {
-                    Console.log (e.message, Console.LogLevel.ERROR);
+            public Builder add_style_search_path (string path) {
+                if (enstl_search_paths == null) {
+                    enstl_search_paths = new string[0];
                 }
+
+                enstl_search_paths.resize (enstl_search_paths.length + 1);
+                enstl_search_paths[enstl_search_paths.length - 1] = path;
+                return this;
             }
 
-            return this;
+            public AWCore build () throws BuildError {
+                if (driver_name == null || sf2_dir == null || enstl_search_paths == null) {
+                    throw new BuildError.MISSING_PARAMETER ("Not all parameters were provided");
+                }
+
+                return new AWCore (this);
+            }
         }
 
         private void add_plugins_to_voice_racks () {
