@@ -93,9 +93,12 @@ namespace Ensembles.ArrangerWorkstation {
                 return this;
             }
 
-            public AWCore build () throws BuildError {
+            public AWCore build () {
                 if (driver_name == null || sf2_dir == null || enstl_search_paths == null) {
-                    throw new BuildError.MISSING_PARAMETER ("Not all parameters were provided");
+                    Console.log(
+                        "Not all mandatory parameters were provided for builder",
+                        Console.LogLevel.ERROR
+                    );
                 }
 
                 return new AWCore (this);
