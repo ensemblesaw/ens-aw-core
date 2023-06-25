@@ -14,6 +14,7 @@ interfaces = files(
 
 classes = files (
     # Core
+    'classes/ArrangerWorkstationBuilder.vala',
     'classes/AWCore.vala',
 
     'classes/AudioEngine/SynthEngine.vala',

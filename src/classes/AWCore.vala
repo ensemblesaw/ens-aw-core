@@ -16,6 +16,8 @@ namespace Ensembles.ArrangerWorkstation {
      * stuff that make every beat beat and every sound sound.
      */
     public class AWCore : Object, IAWCore {
+        public ArrangerWorkstationBuilder builder { private get; construct; }
+
         private AudioEngine.SynthProvider synth_provider;
         private AudioEngine.SynthEngine synth_engine;
         private StyleEngine style_engine;
@@ -36,7 +38,9 @@ namespace Ensembles.ArrangerWorkstation {
         private string sf_schema_path;
         private List<string> style_search_paths;
 
-        protected AWCore (Builder builder) {
+        construct {
+            assert (builder != null);
+
             #if PIPEWIRE_CORE_DRIVER
             Pipewire.init (null, null);
             #endif
@@ -66,43 +70,8 @@ namespace Ensembles.ArrangerWorkstation {
             }
         }
 
-        public struct Builder {
-            string driver_name;
-            string sf2_dir;
-            string sf2_name;
-            string[] enstl_search_paths;
+        protected AWCore () {
 
-            public Builder using_driver (string driver_name) {
-                this.driver_name = driver_name;
-                return this;
-            }
-
-            public Builder load_sf_from (string path, string? name = "EnsemblesGM") {
-                sf2_dir = path;
-                sf2_name = name;
-                return this;
-            }
-
-            public Builder add_style_search_path (string path) {
-                if (enstl_search_paths == null) {
-                    enstl_search_paths = new string[0];
-                }
-
-                enstl_search_paths.resize (enstl_search_paths.length + 1);
-                enstl_search_paths[enstl_search_paths.length - 1] = path;
-                return this;
-            }
-
-            public AWCore build () {
-                if (driver_name == null || sf2_dir == null || enstl_search_paths == null) {
-                    Console.log(
-                        "Not all mandatory parameters were provided for builder",
-                        Console.LogLevel.ERROR
-                    );
-                }
-
-                return new AWCore (this);
-            }
         }
 
         private void add_plugins_to_voice_racks () {

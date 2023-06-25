@@ -43,6 +43,7 @@ dependencies = [
     'docs=disabled', 'tests_cpp=disabled',
     ]),
     dependency ('libpipewire-0.3'),
+    dependency ('libvinject-0.0.0', fallback: ['libvinject', 'vinject_dep']),
     dependency ('libens-tui-shell-0', fallback: ['ens-tui-shell', 'ens_tui_shell_dep']),
     meson.get_compiler ('vala').find_library ('posix'),
     meson.get_compiler ('c').find_library ('m', required : true),
