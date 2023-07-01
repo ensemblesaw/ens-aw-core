@@ -74,6 +74,12 @@ namespace Ensembles.ArrangerWorkstation {
 
         }
 
+        protected AWCore.using_builder (ArrangerWorkstationBuilder builder) {
+            Object (
+                builder: builder
+            );
+        }
+
         private void add_plugins_to_voice_racks () {
             unowned List<AudioPlugins.AudioPlugin> plugins =
             plugin_manager.audio_plugins;
