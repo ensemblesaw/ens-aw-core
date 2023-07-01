@@ -57,7 +57,6 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
         }
 
         public SynthEngine (ISynthProvider synth_provider, string soundfont) throws FluidError {
-            print(soundfont);
             Console.log ("Initializing Synthesizer…");
             rendering_synth = synth_provider.get_synth (SynthType.RENDER);
             buffer_size = rendering_synth.get_internal_bufsize ();

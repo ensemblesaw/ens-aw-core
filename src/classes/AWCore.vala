@@ -16,7 +16,7 @@ namespace Ensembles.ArrangerWorkstation {
      * stuff that make every beat beat and every sound sound.
      */
     public class AWCore : Object, IAWCore {
-        public ArrangerWorkstationBuilder builder { private get; construct; }
+        public ArrangerWorkstationBuilder? builder { private get; construct; }
 
         private AudioEngine.SynthProvider synth_provider;
         private AudioEngine.SynthEngine synth_engine;

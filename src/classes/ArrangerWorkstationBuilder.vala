@@ -1,5 +1,5 @@
 namespace Ensembles.ArrangerWorkstation {
-    public class ArrangerWorkstationBuilder {
+    public class ArrangerWorkstationBuilder : Object {
         internal string driver_name;
         internal string sf2_dir;
         internal string sf2_name;
