@@ -143,9 +143,9 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
          *
          * This should be called before accessing any synth
          */
-        public int init_driver (string driver_name, double buffer_length_multiplier) {
-            switch (driver_name) {
-                case "alsa":
+        public int init_driver (AWCore.Driver driver, double buffer_length_multiplier) {
+            switch (driver) {
+                case AWCore.Driver.ALSA:
                     rendering_settings.setstr ("audio.driver", "alsa");
                     rendering_settings.setint ("audio.periods", 8);
                     rendering_settings.setint ("audio.period-size", (int)(86.0 + (buffer_length_multiplier * 938.0)));
@@ -157,7 +157,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
                     utility_settings.setint ("audio.realtime-prio", 70);
 
                     return (int)(86.0 + (buffer_length_multiplier * 938.0));
-                case "pulseaudio":
+                case AWCore.Driver.PULSEAUDIO:
                     rendering_settings.setstr ("audio.driver", "pulseaudio");
                     rendering_settings.setint ("audio.periods", 8);
                     rendering_settings.setint ("audio.period-size",
@@ -172,7 +172,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
                     utility_settings.setint ("audio.pulseaudio.adjust-latency", 0);
 
                     return (int)(1024.0 + (buffer_length_multiplier * 3072.0));
-                case "pipewire-pulse":
+                case AWCore.Driver.PIPEWIRE_PULSE:
                     rendering_settings.setstr ("audio.driver", "pulseaudio");
                     rendering_settings.setint ("audio.periods", 8);
                     rendering_settings.setint ("audio.period-size", (int)(512.0 + (buffer_length_multiplier * 3584.0)));
@@ -183,7 +183,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
                     utility_settings.setint ("audio.period-size", 512);
 
                     return (int)(512.0 + (buffer_length_multiplier * 3584.0));
-                case "jack":
+                case AWCore.Driver.JACK:
                     rendering_settings.setnum ("synth.gain", 0.005);
                     rendering_settings.setstr ("audio.driver", "jack");
                     rendering_settings.setstr ("audio.jack.id", "Ensembles Audio Output");
@@ -192,7 +192,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
                     utility_settings.setstr ("audio.jack.id", "Ensembles Utility");
 
                     return 0;
-                case "pipewire":
+                case AWCore.Driver.PIPEWIRE:
                     rendering_settings.setstr ("audio.driver", "pipewire");
                     rendering_settings.setint ("audio.period-size", (int)(256.0 + (buffer_length_multiplier * 3584.0)));
                     rendering_settings.setint ("audio.realtime-prio", 80);

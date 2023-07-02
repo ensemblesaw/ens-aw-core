@@ -43,7 +43,7 @@ dependencies = [
     'docs=disabled', 'tests_cpp=disabled',
     ]),
     dependency ('libpipewire-0.3'),
-    dependency ('libens-tui-shell-0', fallback: ['ens-tui-shell', 'ens_tui_shell_dep']),
+    dependency ('libens-shell-cli-0', fallback: ['ens-shell-cli', 'ens_shell_cli_dep']),
     meson.get_compiler ('vala').find_library ('posix'),
     meson.get_compiler ('c').find_library ('m', required : true),
 ]
@@ -58,8 +58,6 @@ libens_aw_core = static_library (
     install: true,
     install_dir: [true, true, true]
 )
-
-subdir ('po')
 
 ens_aw_core_dep = declare_dependency (
     dependencies: dependencies,

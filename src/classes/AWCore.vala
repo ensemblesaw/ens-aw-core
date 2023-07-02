@@ -16,7 +16,9 @@ namespace Ensembles.ArrangerWorkstation {
      * stuff that make every beat beat and every sound sound.
      */
     public class AWCore : Object, IAWCore {
-        public ArrangerWorkstationBuilder? builder { private get; construct; }
+        public Driver driver { get; construct; }
+        public string sf2_dir { get; construct; }
+        public string sf2_name { get; construct; }
 
         private AudioEngine.SynthProvider synth_provider;
         private AudioEngine.SynthEngine synth_engine;
@@ -38,21 +40,26 @@ namespace Ensembles.ArrangerWorkstation {
         private string sf_schema_path;
         private List<string> style_search_paths;
 
+        public enum Driver {
+            ALSA,
+            PULSEAUDIO,
+            JACK,
+            PIPEWIRE_PULSE,
+            PIPEWIRE
+        }
+
         construct {
-            assert (builder != null);
+            assert (sf2_dir != null);
+            assert (sf2_name != null);
 
             #if PIPEWIRE_CORE_DRIVER
             Pipewire.init (null, null);
             #endif
             synth_provider = new AudioEngine.SynthProvider ();
-            synth_provider.init_driver (builder.driver_name, 0.3);
+            synth_provider.init_driver (driver, 0.3);
 
-            sf_path = builder.sf2_dir + "/" + builder.sf2_name + ".sf2";
-            sf_schema_path = builder.sf2_dir + "/" + builder.sf2_name + "Schema.csv";
-
-            for (uint i = 0; i < builder.enstl_search_paths.length; i++) {
-                this.style_search_paths.append (builder.enstl_search_paths[i]);
-            }
+            sf_path = sf2_dir + "/" + sf2_name + ".sf2";
+            sf_schema_path = sf2_dir + "/" + sf2_name + "Schema.csv";
 
             try {
                 main_dsp_rack = new DSPRack ();
@@ -70,14 +77,23 @@ namespace Ensembles.ArrangerWorkstation {
             }
         }
 
-        protected AWCore () {
+        public AWCore () {
 
         }
 
-        protected AWCore.using_builder (ArrangerWorkstationBuilder builder) {
+        public AWCore.using_soundfont (string sf2_dir, string? sf2_name = "Ensembles") {
             Object (
-                builder: builder
+                sf2_dir: sf2_dir,
+                sf2_name: sf2_name
             );
+        }
+
+        private void add_style_search_path (string enstl_dir_path) {
+            if (style_search_paths == null) {
+                style_search_paths = new List<string> ();
+            }
+
+            this.style_search_paths.append (enstl_dir_path);
         }
 
         private void add_plugins_to_voice_racks () {
@@ -111,13 +127,17 @@ namespace Ensembles.ArrangerWorkstation {
         private void load_data () {
             Thread.usleep (500000);
             // Load Styles
-            Console.log ("Searching for styles…");
-            var style_loader = new FileLoaders.StyleFileLoader (this);
-            styles = style_loader.get_styles ();
-            Console.log (
-                "Found %u styles".printf (styles.length),
-                Console.LogLevel.SUCCESS
-            );
+            if (style_search_paths.length () > 0) {
+                Console.log ("Searching for styles…");
+                var style_loader = new FileLoaders.StyleFileLoader (this);
+                styles = style_loader.get_styles ();
+                Console.log (
+                    "Found %u styles".printf (styles.length),
+                    Console.LogLevel.SUCCESS
+                );
+            } else {
+                Console.log ("No style search path specified. Skipping…", Console.LogLevel.WARNING);
+            }
 
             // Load Voices
             Console.log ("Loading voices…");

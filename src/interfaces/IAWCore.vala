@@ -24,6 +24,13 @@ namespace Ensembles.ArrangerWorkstation {
 
         // Functions ///////////////////////////////////////////////////////////
         /**
+         * Add directory path where styles are present.
+         *
+         * @param enstl_dir_path path to the directory containing
+         `.enstl` files
+         */
+        public abstract void add_style_search_path (string enstl_dir_path);
+        /**
          * Load all data like voices, styles and plugins.
          */
         public abstract void load_data_async ();
