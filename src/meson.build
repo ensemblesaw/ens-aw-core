@@ -13,6 +13,8 @@ interfaces = files(
 )
 
 classes = files (
+    # Service
+    'classes/Service.vala',
     # Core
     'classes/AWCore.vala',
 
