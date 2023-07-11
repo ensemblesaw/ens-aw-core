@@ -32,7 +32,7 @@ namespace Ensembles.ArrangerWorkstation {
 
         public delegate void AWBuilderCallback (AWBuilder arranger_workstation_builder);
 
-        public AWBuilder using_driver (AWCore.Driver driver) {
+        public AWBuilder use_driver (AWCore.Driver driver) {
             this.driver = driver;
             return this;
         }
