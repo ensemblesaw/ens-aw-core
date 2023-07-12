@@ -2,23 +2,23 @@ using Vinject;
 using Ensembles.ArrangerWorkstation;
 
 namespace Ensembles.Services {
-    extern static Injector service;
+    extern static Injector di_container;
 
-    public ServiceToken<AWCore> aw_core;
+    public ServiceToken<IAWCore> st_aw_core;
 
     public void configure_aw_service (AWBuilder.AWBuilderCallback aw_builder_callback) throws VinjectErrors {
-        aw_core = new ServiceToken<AWCore> ();
+        st_aw_core = new ServiceToken<IAWCore> ();
         var builder = new AWBuilder ();
         aw_builder_callback (builder);
-        service.register_resolution<IAWCore, AWCore> (
-            Services.aw_core,
+        di_container.register_resolution<AWCore, IAWCore> (
+            Services.st_aw_core,
             sf2_dir: builder.sf2_dir,
             sf2_name: builder.sf2_name,
             driver: builder.driver
         );
 
         foreach (var path in builder.style_search_paths) {
-            service.obtain (aw_core).add_style_search_path (path);
+            di_container.obtain (st_aw_core).add_style_search_path (path);
         }
     }
 }
