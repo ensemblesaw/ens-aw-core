@@ -121,11 +121,15 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             protocol = Protocol.LV2;
 
             // Get all ports from plugin
-            category = get_category ();
+            var port_analyser = new LV2PortAnalyser (lilv_plugin);
+            if (port_analyser.control_in_port_list.length () > 0) {
+                has_ui = true;
+            }
+
+            category = get_category (port_analyser);
         }
 
-        private Category get_category () {
-            var port_analyser = new LV2PortAnalyser (lilv_plugin);
+        private Category get_category (LV2PortAnalyser port_analyser) {
             if ( // Check if it is DSP (effect) plugin
                 (
                     plugin_class.contains ("Amplifier") ||

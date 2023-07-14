@@ -31,6 +31,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins {
          * The license associated with this plugin.
          */
         public string license { get; protected set; }
+        public bool has_ui { get; protected set; }
 
         private bool _active;
 
