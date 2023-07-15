@@ -11,5 +11,3 @@ null.d
 *~
 .~lock*
 xtleak.kcg.*
-subprojects/libvinject/
-subprojects/ens-shell-cli/
