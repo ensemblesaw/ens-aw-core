@@ -21,15 +21,17 @@ namespace Ensembles.Services {
         di_container.register_constant (st_driver, builder.driver);
         di_container.register_constant (st_sf2_name, builder.sf2_name);
         di_container.register_constant (st_sf2_dir, builder.sf2_dir);
-        di_container.register_resolution<AWCore, IAWCore> (
+        di_container.register_singleton <AWCore, IAWCore> (
             Services.st_aw_core,
-            sf2_dir: st_driver,
+            driver: st_driver,
             sf2_name: st_sf2_name,
-            driver: st_sf2_dir
+            sf2_dir: st_sf2_dir
         );
 
+        var _aw_core = di_container.obtain (st_aw_core);
+
         foreach (var path in builder.style_search_paths) {
-            di_container.obtain (st_aw_core).add_style_search_path (path);
+            _aw_core.add_style_search_path (path);
         }
     }
 }

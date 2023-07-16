@@ -88,12 +88,12 @@ namespace Ensembles.ArrangerWorkstation {
             );
         }
 
-        private void add_style_search_path (string enstl_dir_path) {
+        private void add_style_search_path (string? enstl_dir_path) {
             if (style_search_paths == null) {
                 style_search_paths = new List<string> ();
             }
 
-            this.style_search_paths.append (enstl_dir_path);
+            this.style_search_paths.append (enstl_dir_path + "");
         }
 
         private void add_plugins_to_voice_racks () {
