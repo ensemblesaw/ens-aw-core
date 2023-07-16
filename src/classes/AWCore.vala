@@ -77,7 +77,7 @@ namespace Ensembles.ArrangerWorkstation {
             }
         }
 
-        public AWCore () {
+        private AWCore () {
 
         }
 
