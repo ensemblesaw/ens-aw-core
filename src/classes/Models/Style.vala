@@ -6,9 +6,10 @@
 
 namespace Ensembles.Models {
     /**
-     * Data structure representing auto accompaniment styles
+     * Data structure representing auto accompaniment styles.
      */
-    public struct Style {
+    [SimpleType]
+    public class Style : Printable {
         public string name;
         public string genre;
         public uint8 tempo;

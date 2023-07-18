@@ -183,7 +183,7 @@ namespace Ensembles.ArrangerWorkstation.Analysers {
          * Get the analysed style object
          */
         public Style get_style () {
-            return Style () {
+            return new Style () {
                 name = this.name,
                 genre = this.genre,
                 tempo = (uint8)(60000000 / this.tempo_ms),
