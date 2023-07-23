@@ -28,7 +28,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins {
             this.i_aw_core = i_aw_core;
         }
 
-        construct {
+        public void load_all () {
             // Load Audio Plugins //////////////////////////////////////////////
             audio_plugins = new List<AudioPlugins.AudioPlugin> ();
 

@@ -9,6 +9,9 @@ using Ensembles.Models;
 
 namespace Ensembles.ArrangerWorkstation {
     /**
+     * @TODO Should be a proper facade pattern
+     */
+    /**
      * ## Arranger Workstation
      *
      * This forms the core of the app. This houses all the behind the scenes
@@ -20,6 +23,15 @@ namespace Ensembles.ArrangerWorkstation {
         public signal void ready();
         /** Sends verbose status for loading screen. */
         public signal void send_loading_status(string status);
+        /** Sends a beat signal, froim style player, metronome or song player */
+        public signal void beat (bool measure, uint8 beats_per_bar, uint8 bar_length);
+        public signal void beat_reset ();
+
+        // Style Player
+        public signal void on_current_part_change (StylePartType part_type);
+        public signal void on_next_part_change (StylePartType part_type);
+        public signal void on_sync_change (bool active);
+        public signal void on_break_change (bool active);
 
 
         // Functions ///////////////////////////////////////////////////////////

@@ -140,13 +140,14 @@ namespace Ensembles.ArrangerWorkstation {
             }
 
             // Load Voices
-            Console.log ("Loading voices…");
             var voice_loader = new Analysers.VoiceAnalyser (
                 this,
                 synth_provider,
                 sf_path,
                 sf_schema_path
             );
+            Console.log ("Loading voices…");
+            voice_loader.analyse_all ();
             Console.log (
                 "Voices loaded successfully!",
                 Console.LogLevel.SUCCESS
@@ -156,6 +157,7 @@ namespace Ensembles.ArrangerWorkstation {
             // Load Plugins
             Console.log ("Loading Audio Plugins…");
             plugin_manager = new PluginManager (this);
+            plugin_manager.load_all ();
             Console.log (
                 "%u Audio Plugins Loaded Successfully!"
                 .printf (plugin_manager.audio_plugins.length ()),
@@ -206,6 +208,24 @@ namespace Ensembles.ArrangerWorkstation {
                         next_style,
                         current_tempo
                     );
+                    style_engine.beat.connect_after ((measure, beats_per_bar, bar_length) => {
+                        beat (measure, beats_per_bar, bar_length);
+                    });
+                    style_engine.beat_reset.connect_after (() => {
+                        beat_reset ();
+                    });
+                    style_engine.on_current_part_change.connect_after ((part_type) => {
+                        on_current_part_change (part_type);
+                    });
+                    style_engine.on_next_part_change.connect_after ((part_type) => {
+                        on_next_part_change (part_type);
+                    });
+                    style_engine.on_sync_change.connect_after ((active) => {
+                        on_sync_change (active);
+                    });
+                    style_engine.on_break_change.connect_after ((active) => {
+                        on_break_change (active);
+                    });
                     stopping_style = false;
 
                     style_engine.queue_next_part (current_part);
