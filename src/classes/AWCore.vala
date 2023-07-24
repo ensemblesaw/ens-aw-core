@@ -183,13 +183,9 @@ namespace Ensembles.ArrangerWorkstation {
             return style_engine;
         }
 
-        /**
-         * Creates a style engine with given style
-         *
-         * @param style A Style descriptor
-         */
-        private void queue_change_style (Models.Style style) {
-            Console.log ("Changing style to the " + style.to_string ());
+        private void add_style_to_queue (Models.Style style) {
+            Console.log ("Changing style to ");
+            Console.log (style);
             next_style = style;
             if (!stopping_style) {
                 stopping_style = true;

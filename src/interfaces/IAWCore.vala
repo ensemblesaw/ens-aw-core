@@ -12,63 +12,95 @@ namespace Ensembles.ArrangerWorkstation {
      * @TODO Should be a proper facade pattern
      */
     /**
-     * ## Arranger Workstation
+     * ## Arranger Workstation Core
      *
      * This forms the core of the app. This houses all the behind the scenes
      * stuff that make every beat beat and every sound sound.
      */
     public interface IAWCore : Object {
-        // Signals /////////////////////////////////////////////////////////////
-        /** Signals when the arranger is done loading data. */
+        // WORKSTATION /////////////////////////////////////////////////////////
+        /* Signals ************************************************************/
+        /**
+         * Signals when the arranger is done loading data.
+         */
         public signal void ready();
-        /** Sends verbose status for loading screen. */
+
+        /**
+         * Sends verbose status for loading screen.
+         */
         public signal void send_loading_status(string status);
-        /** Sends a beat signal, froim style player, metronome or song player */
-        public signal void beat (bool measure, uint8 beats_per_bar, uint8 bar_length);
+
+        /**
+         * Sends a beat signal, from style player, metronome or song player.
+         */
+        public signal void beat (bool measure, uint8 beats_per_bar,
+            uint8 bar_length);
+
+        /**
+         * When the beat goes back to zero.
+         */
         public signal void beat_reset ();
 
-        // Style Player
-        public signal void on_current_part_change (StylePartType part_type);
-        public signal void on_next_part_change (StylePartType part_type);
-        public signal void on_sync_change (bool active);
-        public signal void on_break_change (bool active);
 
-
-        // Functions ///////////////////////////////////////////////////////////
+        /* Methods ************************************************************/
         /**
          * Add directory path where styles are present.
          *
+         * Must be called before calling `load_data_async ()`.
          * @param enstl_dir_path path to the directory containing
-         `.enstl` files
+         * `.enstl` files
          */
         public abstract void add_style_search_path (string? enstl_dir_path);
-        /**
-         * Load all data like voices, styles and plugins.
-         */
-        public abstract void load_data_async ();
-        /**
-         * Load all data like voices, styles and plugins.
-         */
-        public abstract void load_data ();
+
         /**
          * Get a list of paths from where the styles are searched.
          */
         public abstract unowned List<string> get_style_search_paths ();
+
         /**
          * Returns an array of styles loaded by the arranger workstation.
          */
         public abstract unowned Style[] get_styles ();
-        /**
-         * Creates a style engine with given style
-         *
-         * @param style A Style descriptor
-         */
-        public abstract void queue_change_style (Models.Style style);
+
         /**
          * Returns an array of voices loaded by the arranger workstation.
          */
         public abstract unowned Voice[] get_voices ();
 
+
+
+        // SYNTHESIZER /////////////////////////////////////////////////////////
+        /* Signals ************************************************************/
+
+        /* Methods ************************************************************/
+
+
+        // STYLE ENGINE ////////////////////////////////////////////////////////
+        /* Signals ************************************************************/
+        public signal void on_current_part_change (StylePartType part_type);
+
+        public signal void on_next_part_change (StylePartType part_type);
+
+        public signal void on_sync_change (bool active);
+
+        public signal void on_break_change (bool active);
+
+
+        /* Methods ************************************************************/
+        /**
+         * Adds a style to the queue to be played by a style engine. This will
+         * replace any style that has already been added to the queue.
+         *
+         * @param style A Style descriptor
+         */
+        public abstract void add_style_to_queue (Models.Style style);
+
+
+
+        // PLUGINS /////////////////////////////////////////////////////////////
+        /* Signals ************************************************************/
+
+        /* Methods ************************************************************/
         public abstract unowned List<AudioPlugins.AudioPlugin> get_audio_plugins ();
 
         public abstract unowned Racks.DSPRack get_main_dsp_rack ();
