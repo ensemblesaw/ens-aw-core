@@ -71,25 +71,27 @@ namespace Ensembles.ArrangerWorkstation {
             }
         }
 
-        private AWCore () {
+        private AWCore () { }
 
-        }
-
-        public AWCore.using_soundfont (string sf2_dir, string? sf2_name = "Ensembles") {
+        public AWCore.from_options (string sf2_dir, string? sf2_name = "Ensembles") {
             Object (
                 sf2_dir: sf2_dir,
                 sf2_name: sf2_name
             );
         }
 
-        private void add_style_search_path (string? enstl_dir_path) {
-            if (style_search_paths == null) {
-                style_search_paths = new List<string> ();
-            }
 
-            this.style_search_paths.append (enstl_dir_path + "");
-        }
 
+
+
+        /***********************************************************************
+         *                        INTERNAL FUNCTIONS                           *
+         ***********************************************************************/
+
+
+        /**
+         * Add instrument plugins to voice racks.
+         */
         private void add_plugins_to_voice_racks () {
             unowned List<AudioPlugins.AudioPlugin> plugins =
             plugin_manager.audio_plugins;
@@ -111,7 +113,37 @@ namespace Ensembles.ArrangerWorkstation {
             voice_r2_rack.active = true;
         }
 
-        private async void load_data_async () throws ThreadError {
+
+
+
+
+        /***********************************************************************
+         *                        EXTERNAL FUNCTIONS                           *
+         ***********************************************************************/
+
+
+        // WORKSTATION /////////////////////////////////////////////////////////
+
+        /**
+         * Add directory path where styles are present.
+         *
+         * Must be called before calling `load_data_async ()`.
+         * @param enstl_dir_path path to the directory containing
+         * `.enstl` files
+         */
+        protected void add_style_search_path (string? enstl_dir_path) {
+            if (style_search_paths == null) {
+                style_search_paths = new List<string> ();
+            }
+
+            this.style_search_paths.append (enstl_dir_path + "");
+        }
+
+        protected unowned List<string> get_style_search_paths () {
+            return style_search_paths;
+        }
+
+        protected async void load_data_async () throws ThreadError {
             SourceFunc callback = load_data_async.callback;
             ThreadFunc<void> run = () => {
                 load_data ();
@@ -122,7 +154,7 @@ namespace Ensembles.ArrangerWorkstation {
             yield;
         }
 
-        private void load_data () {
+        protected void load_data () {
             Thread.usleep (500000);
             // Load Styles
             if (style_search_paths.length () > 0) {
@@ -173,11 +205,21 @@ namespace Ensembles.ArrangerWorkstation {
             });
         }
 
-        private AudioEngine.ISynthEngine get_synth_engine () {
-            return synth_engine;
+        protected unowned Style[] get_styles () {
+            return styles;
         }
 
-        private void add_style_to_queue (Models.Style style) {
+        protected unowned Voice[] get_voices () {
+            return voices;
+        }
+
+
+        // SYNTHESIZER /////////////////////////////////////////////////////////
+
+
+
+        // STYLE ENGINE ////////////////////////////////////////////////////////
+        protected void style_engine_queue_style (Models.Style style) {
             Console.log ("Changing style to ");
             Console.log (style);
             next_style = style;
@@ -226,27 +268,41 @@ namespace Ensembles.ArrangerWorkstation {
             }
         }
 
-        private unowned List<string> get_style_search_paths () {
-            return style_search_paths;
+        protected void style_engine_queue_part (Ensembles.Models.StylePartType part) {
+            if (style_engine != null) {
+                style_engine.queue_next_part (part);
+            }
         }
 
-        private unowned Style[] get_styles () {
-            return styles;
+        protected void style_engine_toggle_playback () {
+            if (style_engine != null) {
+                style_engine.toggle_play ();
+            }
         }
 
-        private unowned Voice[] get_voices () {
-            return voices;
+        protected void style_engine_sync () {
+            if (style_engine != null) {
+                style_engine.sync ();
+            }
         }
 
-        private unowned List<AudioPlugins.AudioPlugin> get_audio_plugins () {
+        protected void style_engine_break () {
+            if (style_engine != null) {
+                style_engine.break_play ();
+            }
+        }
+
+
+        // PLUGINS /////////////////////////////////////////////////////////////
+        protected unowned List<AudioPlugins.AudioPlugin> get_audio_plugins () {
             return plugin_manager.audio_plugins;
         }
 
-        private unowned Racks.DSPRack get_main_dsp_rack () {
+        protected unowned Racks.DSPRack get_main_dsp_rack () {
             return main_dsp_rack;
         }
 
-        private unowned Racks.VoiceRack get_voice_rack (
+        protected unowned Racks.VoiceRack get_voice_rack (
             VoiceHandPosition position
         ) {
             switch (position) {

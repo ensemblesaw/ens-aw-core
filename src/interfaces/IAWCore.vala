@@ -9,16 +9,15 @@ using Ensembles.Models;
 
 namespace Ensembles.ArrangerWorkstation {
     /**
-     * @TODO Should be a proper facade pattern
-     */
-    /**
      * ## Arranger Workstation Core
      *
      * This forms the core of the app. This houses all the behind the scenes
      * stuff that make every beat beat and every sound sound.
      */
     public interface IAWCore : Object {
+
         // WORKSTATION /////////////////////////////////////////////////////////
+
         /* Signals ************************************************************/
         /**
          * Signals when the arranger is done loading data.
@@ -80,19 +79,18 @@ namespace Ensembles.ArrangerWorkstation {
 
 
         // SYNTHESIZER /////////////////////////////////////////////////////////
+
         /* Signals ************************************************************/
 
         /* Methods ************************************************************/
 
 
         // STYLE ENGINE ////////////////////////////////////////////////////////
+
         /* Signals ************************************************************/
         public signal void on_current_part_change (StylePartType part_type);
-
         public signal void on_next_part_change (StylePartType part_type);
-
         public signal void on_sync_change (bool active);
-
         public signal void on_break_change (bool active);
 
 
@@ -103,7 +101,11 @@ namespace Ensembles.ArrangerWorkstation {
          *
          * @param style A Style descriptor
          */
-        public abstract void add_style_to_queue (Models.Style style);
+        public abstract void style_engine_queue_style (Style style);
+        public abstract void style_engine_queue_part (StylePartType part);
+        public abstract void style_engine_toggle_playback ();
+        public abstract void style_engine_sync ();
+        public abstract void style_engine_break ();
 
 
 
@@ -118,8 +120,5 @@ namespace Ensembles.ArrangerWorkstation {
         public abstract unowned Racks.VoiceRack get_voice_rack (
             VoiceHandPosition position
         );
-
-        // Module Interfaces ///////////////////////////////////////////////////
-        public abstract AudioEngine.ISynthEngine get_synth_engine ();
     }
 }
