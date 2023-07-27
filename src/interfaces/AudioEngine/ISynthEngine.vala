@@ -76,8 +76,8 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
 
         // Signals /////////////////////////////////////////////////////////////
         // MIDI Output
-        public signal int on_midi (Models.MIDIEvent event);
-        internal signal int on_f_midi (Fluid.MIDIEvent event);
+        public signal int on_midi_receive (Models.MIDIEvent event);
+        internal signal int on_f_midi_receive (Fluid.MIDIEvent event);
 
         // Functions ///////////////////////////////////////////////////////////
         /**

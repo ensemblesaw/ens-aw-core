@@ -81,9 +81,10 @@ namespace Ensembles.ArrangerWorkstation {
         // SYNTHESIZER /////////////////////////////////////////////////////////
 
         /* Signals ************************************************************/
+        public signal bool on_midi_receive (MIDIEvent event);
 
         /* Methods ************************************************************/
-
+        public abstract bool send_midi (MIDIEvent event);
 
         // STYLE ENGINE ////////////////////////////////////////////////////////
 

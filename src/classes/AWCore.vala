@@ -131,7 +131,7 @@ namespace Ensembles.ArrangerWorkstation {
          * @param enstl_dir_path path to the directory containing
          * `.enstl` files
          */
-        protected void add_style_search_path (string? enstl_dir_path) {
+        public void add_style_search_path (string? enstl_dir_path) {
             if (style_search_paths == null) {
                 style_search_paths = new List<string> ();
             }
@@ -139,11 +139,11 @@ namespace Ensembles.ArrangerWorkstation {
             this.style_search_paths.append (enstl_dir_path + "");
         }
 
-        protected unowned List<string> get_style_search_paths () {
+        public unowned List<string> get_style_search_paths () {
             return style_search_paths;
         }
 
-        protected async void load_data_async () throws ThreadError {
+        public async void load_data_async () throws ThreadError {
             SourceFunc callback = load_data_async.callback;
             ThreadFunc<void> run = () => {
                 load_data ();
@@ -154,7 +154,7 @@ namespace Ensembles.ArrangerWorkstation {
             yield;
         }
 
-        protected void load_data () {
+        public void load_data () {
             Thread.usleep (500000);
             // Load Styles
             if (style_search_paths.length () > 0) {
@@ -205,21 +205,23 @@ namespace Ensembles.ArrangerWorkstation {
             });
         }
 
-        protected unowned Style[] get_styles () {
+        public unowned Style[] get_styles () {
             return styles;
         }
 
-        protected unowned Voice[] get_voices () {
+        public unowned Voice[] get_voices () {
             return voices;
         }
 
 
         // SYNTHESIZER /////////////////////////////////////////////////////////
-
+        public bool send_midi (MIDIEvent event) {
+            return synth_engine.send_midi (event) == Fluid.OK;
+        }
 
 
         // STYLE ENGINE ////////////////////////////////////////////////////////
-        protected void style_engine_queue_style (Models.Style style) {
+        public void style_engine_queue_style (Models.Style style) {
             Console.log ("Changing style to ");
             Console.log (style);
             next_style = style;
@@ -268,25 +270,25 @@ namespace Ensembles.ArrangerWorkstation {
             }
         }
 
-        protected void style_engine_queue_part (Ensembles.Models.StylePartType part) {
+        public void style_engine_queue_part (Ensembles.Models.StylePartType part) {
             if (style_engine != null) {
                 style_engine.queue_next_part (part);
             }
         }
 
-        protected void style_engine_toggle_playback () {
+        public void style_engine_toggle_playback () {
             if (style_engine != null) {
                 style_engine.toggle_play ();
             }
         }
 
-        protected void style_engine_sync () {
+        public void style_engine_sync () {
             if (style_engine != null) {
                 style_engine.sync ();
             }
         }
 
-        protected void style_engine_break () {
+        public void style_engine_break () {
             if (style_engine != null) {
                 style_engine.break_play ();
             }
@@ -294,15 +296,15 @@ namespace Ensembles.ArrangerWorkstation {
 
 
         // PLUGINS /////////////////////////////////////////////////////////////
-        protected unowned List<AudioPlugins.AudioPlugin> get_audio_plugins () {
+        public unowned List<AudioPlugins.AudioPlugin> get_audio_plugins () {
             return plugin_manager.audio_plugins;
         }
 
-        protected unowned Racks.DSPRack get_main_dsp_rack () {
+        public unowned Racks.DSPRack get_main_dsp_rack () {
             return main_dsp_rack;
         }
 
-        protected unowned Racks.VoiceRack get_voice_rack (
+        public unowned Racks.VoiceRack get_voice_rack (
             VoiceHandPosition position
         ) {
             switch (position) {

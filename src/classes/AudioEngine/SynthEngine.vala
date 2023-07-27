@@ -394,7 +394,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
                 }
             }
 
-            on_midi (event);
+            on_midi_receive (event);
 
             if (handled) {
                 return Fluid.OK;
@@ -442,7 +442,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
                 //  velocity_buffer[chan] = value;
             }
 
-            on_f_midi (event);
+            on_f_midi_receive (event);
 
             return rendering_synth.handle_midi_event (event);
         }
