@@ -20,7 +20,7 @@
         public const double[] LEVEL = { 0, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2 };
     }
 
-    public class ModulatorSettings : Object {
+    public class Modulators : Object {
         private int16[] pan_value;
         private int16[] reverb_value;
         private int16[] chorus_value;
@@ -128,7 +128,7 @@
         }
     }
 
-    public class StyleGainSettings : Object {
+    public class StyleChannelGain : Object {
         /** Style gain values */
         public int16[] gain;
         construct {

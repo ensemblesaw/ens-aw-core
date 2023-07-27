@@ -90,8 +90,8 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
 
         // Private Fields
         private Analysers.ChordAnalyser chord_analyser;
-        private SynthModPresets.StyleGainSettings style_gain_settings;
-        private SynthModPresets.ModulatorSettings modulator_settings;
+        private SynthModPresets.StyleChannelGain style_channel_gain;
+        private SynthModPresets.Modulators modulators;
 
         private int soundfont_id;
 
@@ -119,6 +119,10 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
 
             initialize_voices ();
             set_synth_defaults ();
+
+            modulators = new SynthModPresets.Modulators ();
+            style_channel_gain = new SynthModPresets.StyleChannelGain ();
+            chord_analyser = new Analysers.ChordAnalyser ();
         }
 
         construct {
@@ -420,19 +424,19 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
                 }
 
                 if (cont == MIDIEvent.Control.GAIN) {
-                    if (style_gain_settings.gain[chan] >= 0) {
-                        event.set_value (style_gain_settings.gain[chan]);
+                    if (style_channel_gain.gain[chan] >= 0) {
+                        event.set_value (style_channel_gain.gain[chan]);
                     }
                 }
 
                 if (cont == MIDIEvent.Control.PAN) {
-                    if (modulator_settings.get_mod_buffer_value (MIDIEvent.Control.PAN, (uint8)chan) >= -64) {
-                        event.set_value (modulator_settings.get_mod_buffer_value (10, (uint8)chan));
+                    if (modulators.get_mod_buffer_value (MIDIEvent.Control.PAN, (uint8)chan) >= -64) {
+                        event.set_value (modulators.get_mod_buffer_value (10, (uint8)chan));
                     }
                 } else {
-                    if (modulator_settings.get_mod_buffer_value ((uint8)cont, (uint8)chan) >= 0) {
+                    if (modulators.get_mod_buffer_value ((uint8)cont, (uint8)chan) >= 0) {
                         event.set_value (
-                            modulator_settings.get_mod_buffer_value ((uint8)cont, (uint8)chan)
+                            modulators.get_mod_buffer_value ((uint8)cont, (uint8)chan)
                         );
                     }
                 }
