@@ -66,6 +66,10 @@ namespace Ensembles.ArrangerWorkstation {
                 .add_rack (voice_l_rack)
                 .add_rack (voice_r1_rack)
                 .add_rack (voice_r2_rack);
+
+                synth_engine.on_midi_receive.connect ((event) => {
+                    return on_midi_receive (event) ? Fluid.OK : Fluid.FAILED;
+                });
             } catch (FluidError e) {
                 Console.log (e.message, Console.LogLevel.ERROR);
             }
