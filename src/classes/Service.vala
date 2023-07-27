@@ -5,13 +5,13 @@ namespace Ensembles.Services {
     extern static Injector di_container;
 
     public ServiceToken<IAWCore> st_aw_core;
-    public ServiceToken<AWCore.Driver> st_driver;
+    public ServiceToken<AudioEngine.ISynthEngine.Driver> st_driver;
     public ServiceToken<string> st_sf2_name;
     public ServiceToken<string> st_sf2_dir;
 
     public void configure_aw_service (AWBuilder.AWBuilderCallback aw_builder_callback) throws VinjectErrors {
         st_aw_core = new ServiceToken<IAWCore> ();
-        st_driver = new ServiceToken<AWCore.Driver> ();
+        st_driver = new ServiceToken<AudioEngine.ISynthEngine.Driver> ();
         st_sf2_name = new ServiceToken<string> ();
         st_sf2_dir = new ServiceToken<string> ();
 

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
- namespace Ensembles.ArrangerWorkstation.AudioEngine.SynthSettingsPresets {
+ namespace Ensembles.ArrangerWorkstation.AudioEngine.SynthModPresets {
     /** Reverb presets
         */
     public class ReverbPresets {

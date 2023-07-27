@@ -19,16 +19,14 @@ namespace Ensembles.ArrangerWorkstation.Analysers {
 
         public VoiceAnalyser (
             IAWCore i_aw_core,
-            ISynthProvider i_synth_provider,
+            Fluid.Synth utility_synth,
             string sf_path,
             string sf_schema_path
         ) {
             this.i_aw_core = i_aw_core;
 
             voice_list = new List<Voice?> ();
-
-            unowned Fluid.Synth sf_synth = i_synth_provider.get_synth (SynthType.UTILITY);
-            soundfont = sf_synth.get_sfont (0);
+            soundfont = utility_synth.get_sfont (0);
         }
 
         public void analyse_all () {

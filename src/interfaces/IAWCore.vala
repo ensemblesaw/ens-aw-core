@@ -58,6 +58,16 @@ namespace Ensembles.ArrangerWorkstation {
         public abstract unowned List<string> get_style_search_paths ();
 
         /**
+         * Load all data like voices, styles and plugins.
+         */
+        public abstract void load_data ();
+
+        /**
+         * Load all data like voices, styles and plugins.
+         */
+        public abstract async void load_data_async () throws ThreadError;
+
+        /**
          * Returns an array of styles loaded by the arranger workstation.
          */
         public abstract unowned Style[] get_styles ();
@@ -111,6 +121,5 @@ namespace Ensembles.ArrangerWorkstation {
 
         // Module Interfaces ///////////////////////////////////////////////////
         public abstract AudioEngine.ISynthEngine get_synth_engine ();
-        public abstract MIDIPlayers.IStyleEngine get_style_engine ();
     }
 }

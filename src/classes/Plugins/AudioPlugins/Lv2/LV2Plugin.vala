@@ -192,7 +192,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
 
             for (uint8 i = 0; i < atom_midi_in_ports.length; i++) {
                 atom_midi_in_variables[i] = new LV2EvBuf (
-                    AudioEngine.SynthEngine.get_buffer_size (),
+                    AudioEngine.SynthEngine.buffer_size,
                     lv2_manager.map_uri (LV2.Atom._Chunk),
                     lv2_manager.map_uri (LV2.Atom._Sequence)
                 );
@@ -306,7 +306,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             if (active) {
                 //  print ("midi, %d\n", midi_event.get_key ());
                 if (midi_event_buffer == null) {
-                    midi_event_buffer = new Fluid.MIDIEvent [AudioEngine.SynthEngine.get_buffer_size ()];
+                    midi_event_buffer = new Fluid.MIDIEvent [AudioEngine.SynthEngine.buffer_size];
                 }
 
                 midi_event_buffer[midi_input_event_count] = new Fluid.MIDIEvent ();
@@ -337,7 +337,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                     buffer[2] = (uint8) midi_event.get_velocity ();
                     iter.write (
                         (uint32) (
-                            new DateTime.now_utc ().to_unix () - AudioEngine.SynthEngine.get_process_start_time ()
+                            new DateTime.now_utc ().to_unix () - AudioEngine.SynthEngine.processing_start_time
                         ),
                         0,
                         (uint32) lv2_manager.map_uri (LV2.MIDI._MidiEvent),

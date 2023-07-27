@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+using Ensembles.ArrangerWorkstation.AudioEngine;
 using Ensembles.ArrangerWorkstation.MIDIPlayers;
 using Ensembles.ArrangerWorkstation.Plugins;
 using Ensembles.ArrangerWorkstation.Racks;
@@ -10,18 +11,17 @@ using Ensembles.Models;
 
 namespace Ensembles.ArrangerWorkstation {
     /**
-     * ## Arranger Workstation
+     * ## Arranger Workstation Core
      *
      * This forms the core of the app. This houses all the behind the scenes
      * stuff that make every beat beat and every sound sound.
      */
     public class AWCore : Object, IAWCore {
-        public Driver driver { get; construct; }
+        public ISynthEngine.Driver driver { get; construct; }
         public string sf2_dir { get; construct; }
         public string sf2_name { get; construct; }
 
-        private AudioEngine.SynthProvider synth_provider;
-        private AudioEngine.SynthEngine synth_engine;
+        private ISynthEngine synth_engine;
         private StyleEngine style_engine;
         private PluginManager plugin_manager;
         private DSPRack main_dsp_rack;
@@ -40,14 +40,6 @@ namespace Ensembles.ArrangerWorkstation {
         private string sf_schema_path;
         private List<string> style_search_paths;
 
-        public enum Driver {
-            ALSA,
-            PULSEAUDIO,
-            JACK,
-            PIPEWIRE_PULSE,
-            PIPEWIRE
-        }
-
         construct {
             assert (sf2_dir != null);
             assert (sf2_name != null);
@@ -55,8 +47,6 @@ namespace Ensembles.ArrangerWorkstation {
             #if PIPEWIRE_CORE_DRIVER
             Pipewire.init (null, null);
             #endif
-            synth_provider = new AudioEngine.SynthProvider ();
-            synth_provider.init_driver (driver, 0.3);
 
             sf_path = sf2_dir + "/" + sf2_name + ".sf2";
             sf_schema_path = sf2_dir + "/" + sf2_name + "Schema.csv";
@@ -67,7 +57,11 @@ namespace Ensembles.ArrangerWorkstation {
                 voice_r1_rack = new VoiceRack ();
                 voice_r2_rack = new VoiceRack ();
 
-                synth_engine = new AudioEngine.SynthEngine (synth_provider, sf_path)
+                synth_engine = new AudioEngine.SynthEngine (
+                    driver,
+                    sf_path,
+                    0.3
+                )
                 .add_rack (main_dsp_rack)
                 .add_rack (voice_l_rack)
                 .add_rack (voice_r1_rack)
@@ -117,11 +111,15 @@ namespace Ensembles.ArrangerWorkstation {
             voice_r2_rack.active = true;
         }
 
-        /**
-         * Load all data like voices, styles and plugins
-         */
-        private void load_data_async () {
-            new Thread<void> ("ensembles-data-discovery", load_data);
+        private async void load_data_async () throws ThreadError {
+            SourceFunc callback = load_data_async.callback;
+            ThreadFunc<void> run = () => {
+                load_data ();
+                Idle.add((owned) callback);
+            };
+            new Thread<void> ("ensembles-data-discovery", (owned) run);
+
+            yield;
         }
 
         private void load_data () {
@@ -142,7 +140,7 @@ namespace Ensembles.ArrangerWorkstation {
             // Load Voices
             var voice_loader = new Analysers.VoiceAnalyser (
                 this,
-                synth_provider,
+                synth_engine.utility_synth,
                 sf_path,
                 sf_schema_path
             );
@@ -179,10 +177,6 @@ namespace Ensembles.ArrangerWorkstation {
             return synth_engine;
         }
 
-        private MIDIPlayers.IStyleEngine get_style_engine () {
-            return style_engine;
-        }
-
         private void add_style_to_queue (Models.Style style) {
             Console.log ("Changing style to ");
             Console.log (style);
@@ -199,7 +193,6 @@ namespace Ensembles.ArrangerWorkstation {
                     }
 
                     style_engine = new StyleEngine (
-                        synth_provider,
                         synth_engine,
                         next_style,
                         current_tempo
@@ -237,16 +230,10 @@ namespace Ensembles.ArrangerWorkstation {
             return style_search_paths;
         }
 
-        /**
-         * Returns an array of styles loaded by the arranger workstation.
-         */
         private unowned Style[] get_styles () {
             return styles;
         }
 
-        /**
-         * Returns an array of voices loaded by the arranger workstation.
-         */
         private unowned Voice[] get_voices () {
             return voices;
         }

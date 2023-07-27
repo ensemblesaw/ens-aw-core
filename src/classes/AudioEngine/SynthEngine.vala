@@ -7,7 +7,7 @@ using Ensembles.Models;
 
 namespace Ensembles.ArrangerWorkstation.AudioEngine {
     /**
-     * ## Synthesizer
+     * ## Synthesizer Engine
      *
      * The FluidSynth SoundFont™ Synthesizer forms the base audio engine for the
      * app.
@@ -17,11 +17,57 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
      *
      * All sound from the plugins and samplers are also channel through this
      * synthesizer.
+     *
+     * ------------------------------------------
+     *  ### RENDER SYNTH CHANNEL ROUTE SCHEMATICS
+     *
+     *  #### STYLE, SONG:
+     *  - 0 - 15
+     *
+     *  #### METRONOME:
+     *  - 16
+     *
+     *  #### MIDI INPUT:
+     *  - Voice R1      ~ 17
+     *  - Voice R2      ~ 18
+     *  - Voice L       ~ 19
+     *  - CHORD-EP      ~ 20
+     *  - CHORD-Strings ~ 21
+     *  - CHORD-Bass    ~ 22
+     *
+     *  #### CHIMES:
+     *  - 23
+     *
+     *  #### RECORDER:
+     *  - Voice R2    ~ 24
+     *  - Voice L     ~ 25
+     *  - All tracks  ~ 26 - 63
      */
     public class SynthEngine : Object, ISynthEngine {
+        // Public Instance Fields //////////////////////////////////////////////
+        public Driver driver { get; construct; }
+        /** Synth used for rendering audio. */
+        public Fluid.Synth rendering_synth { get; owned construct; }
+        /** Synth used for midi playback and auditing. */
+        public Fluid.Synth utility_synth { get; owned construct; }
+
+        private double _buffer_length_multipler;
+        public double buffer_length_multiplier {
+            get {
+                return _buffer_length_multipler;
+            }
+            set construct {
+                _buffer_length_multipler = value;
+                if (settings != null) {
+                    settings.configure_driver (
+                        driver,
+                        value
+                    );
+                }
+            }
+        }
 
         private bool _input_enabled = true;
-
         public bool input_enabled {
             get {
                 return _input_enabled;
@@ -31,74 +77,168 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             }
         }
 
+        public List<unowned Racks.Rack> racks { get; private owned set construct; }
+        public string soundfont_path { get; construct; }
+
         public bool layer { get; set; }
         public bool split { get; set; }
 
-        public static int64 processing_start_time;
-
-        private static uint32 buffer_size;
-
-        private Analysers.ChordAnalyser chord_analyser;
-        private SynthSettingsPresets.StyleGainSettings style_gain_settings;
-        private SynthSettingsPresets.ModulatorSettings modulator_settings;
-        private unowned Fluid.Synth rendering_synth;
-
-        public List<unowned Racks.Rack> racks;
-
+        // Public Static Fields ////////////////////////////////////////////////
+        public static int64 processing_start_time { get; private set; }
+        public static uint32 buffer_size { get; private set; }
         public static double sample_rate { get; private set; }
+
+        // Private Fields
+        private Analysers.ChordAnalyser chord_analyser;
+        private SynthModPresets.StyleGainSettings style_gain_settings;
+        private SynthModPresets.ModulatorSettings modulator_settings;
 
         private int soundfont_id;
 
-        construct {
-            chord_analyser = new Analysers.ChordAnalyser ();
-            style_gain_settings = new SynthSettingsPresets.StyleGainSettings ();
-            modulator_settings = new SynthSettingsPresets.ModulatorSettings ();
-            racks = new List<unowned Racks.Rack> ();
-        }
+        private SynthSettings settings;
 
-        public SynthEngine (ISynthProvider synth_provider, string soundfont) throws FluidError {
+        private Fluid.AudioDriver rendering_driver;
+        private Fluid.AudioDriver utility_driver;
+
+        private static float* wet_buffer_l;
+        private static float* wet_buffer_r;
+
+        public SynthEngine (Driver driver, string soundfont_path, double buffer_length_multiplier) throws FluidError {
             Console.log ("Initializing Synthesizer…");
-            rendering_synth = synth_provider.get_synth (SynthType.RENDER);
-            buffer_size = rendering_synth.get_internal_bufsize ();
-            double sample_rate = 1;
-            var s = rendering_synth.get_settings ();
-            s.getnum ("synth.sample-rate", out sample_rate);
-            Console.log ("Sample Rate: %0.1lf Hz".printf (sample_rate));
-            SynthEngine.sample_rate = sample_rate;
-            SynthProvider.synth_render_handler = process_audio;
-
-            if (Fluid.is_soundfont (soundfont)) {
-                synth_provider.get_synth (SynthType.UTILITY).sfload (soundfont, true);
-                soundfont_id = rendering_synth.sfload (soundfont, true);
-
-                // Initialize Voices
-                rendering_synth.program_select (17, soundfont_id, 0, 0);
-                rendering_synth.program_select (18, soundfont_id, 0, 49);
-                rendering_synth.program_select (19, soundfont_id, 0, 33);
-
-                // Initialize chord voices
-                rendering_synth.program_select (20, soundfont_id, 0, 5);
-                rendering_synth.program_select (21, soundfont_id, 0, 33);
-                rendering_synth.program_select (22, soundfont_id, 0, 49);
-
-                // Initialize metronome voice
-                rendering_synth.program_select (16, soundfont_id, 128, 0);
-
-                // Initialize intro chime voice
-                rendering_synth.program_select (23, soundfont_id, 0, 96);
-            } else {
-                throw new FluidError.INVALID_SF (_("SoundFont from path: %s is either missing or invalid"), soundfont);
+            if (!Fluid.is_soundfont (soundfont_path)) {
+                throw new FluidError.INVALID_SF (
+                    "SoundFont from path: %s is either missing or invalid", soundfont_path
+                );
             }
 
+            Object (
+                driver: driver,
+                soundfont_path: soundfont_path,
+                buffer_length_multiplier: buffer_length_multiplier
+            );
+
+            initialize_voices ();
             set_synth_defaults ();
         }
 
-        private SynthEngine add_rack (Racks.Rack rack) {
+        construct {
+            settings = new SynthSettings ();
+
+            settings.configure_driver (
+                driver,
+                buffer_length_multiplier
+            );
+
+            rendering_synth = build_rendering_synth ();
+            utility_synth = build_utility_synth ();
+
+            soundfont_id = rendering_synth.sfload (soundfont_path, true);
+            utility_synth.sfload (soundfont_path, true);
+            racks = new List<unowned Racks.Rack> ();
+        }
+
+        ~SynthEngine () {
+            Fluid.free (wet_buffer_l);
+            Fluid.free (wet_buffer_r);
+        }
+
+        private Fluid.Synth build_rendering_synth () {
+            var _rendering_synth = new Fluid.Synth (settings.rendering_settings);
+
+            buffer_size = _rendering_synth.get_internal_bufsize ();
+            double _sample_rate = 1;
+            settings.rendering_settings.getnum ("synth.sample-rate", out _sample_rate);
+            sample_rate = _sample_rate;
+            Console.log ("Sample Rate: %0.1lf Hz".printf (_sample_rate));
+
+            rendering_driver = new Fluid.AudioDriver.with_audio_callback (
+                settings.rendering_settings,
+                (synth_engine, len, fx, aout) => {
+                // Log current unix time before the synthesizer processes audio
+                SynthEngine.processing_start_time = new DateTime.now_utc ().to_unix ();
+
+                if (fx == null) {
+                    /* Note that some audio drivers may not provide buffers for effects like
+                     * reverb and chorus. In this case it's your decision what to do. If you
+                     * had called process() like in the else branch below, no
+                     * effects would have been rendered. Instead, you may mix the effects
+                     * directly into the out buffers. */
+                    if (((SynthEngine)synth_engine).rendering_synth
+                        .process (len, aout, aout) != Fluid.OK) {
+                        return Fluid.FAILED;
+                    }
+                } else {
+                    // Call the synthesizer to fill the output buffers with its
+                    // audio output.
+                    if (((SynthEngine)synth_engine).rendering_synth
+                        .process (len, fx, aout) != Fluid.OK) {
+                        return Fluid.FAILED;
+                    }
+                }
+
+                // All processing is stereo // Repeat processing if the plugin is mono
+                float* dry_buffer_l = aout[0];
+                float* dry_buffer_r = aout[1];
+
+                // Apply effects here
+                if (wet_buffer_l == null || wet_buffer_r == null) {
+                    wet_buffer_l = malloc (len * sizeof (float));
+                    wet_buffer_r = malloc (len * sizeof (float));
+                }
+
+                for (int k = 0; k < len; k++) {
+                    wet_buffer_l[k] = dry_buffer_l[k];
+                    wet_buffer_r[k] = dry_buffer_r[k];
+                }
+
+                // The audio buffer data is sent to the plugin system
+                ((SynthEngine)synth_engine).process_audio (len,
+                    dry_buffer_l,
+                    dry_buffer_r,
+                    &wet_buffer_l,
+                    &wet_buffer_r
+                );
+
+                for (int k = 0; k < len; k++) {
+                    dry_buffer_l[k] = wet_buffer_l[k];
+                    dry_buffer_r[k] = wet_buffer_r[k];
+                }
+
+                return Fluid.OK;
+            }, this);
+
+            return _rendering_synth;
+        }
+
+        private Fluid.Synth build_utility_synth () {
+            var _utility_synth = new Fluid.Synth (settings.utility_settings);
+            utility_driver = new Fluid.AudioDriver (settings.utility_settings, _utility_synth);
+            return _utility_synth;
+        }
+
+        private void initialize_voices () {
+            rendering_synth.program_select (17, soundfont_id, 0, 0);
+            rendering_synth.program_select (18, soundfont_id, 0, 49);
+            rendering_synth.program_select (19, soundfont_id, 0, 33);
+
+            // Initialize chord voices
+            rendering_synth.program_select (20, soundfont_id, 0, 5);
+            rendering_synth.program_select (21, soundfont_id, 0, 33);
+            rendering_synth.program_select (22, soundfont_id, 0, 49);
+
+            // Initialize metronome voice
+            rendering_synth.program_select (16, soundfont_id, 128, 0);
+
+            // Initialize intro chime voice
+            rendering_synth.program_select (23, soundfont_id, 0, 96);
+        }
+
+        protected SynthEngine add_rack (Racks.Rack rack) {
             racks.append (rack);
             return this;
         }
 
-        private void set_voice (VoiceHandPosition hand_position, uint8 bank, uint8 preset) {
+        protected void set_voice (VoiceHandPosition hand_position, uint8 bank, uint8 preset) {
             uint8 channel = 17;
             switch (hand_position) {
                 case VoiceHandPosition.LEFT:
@@ -163,7 +303,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             edit_master_chorus (2);
         }
 
-        private void play_intro_sound () {
+        protected void play_intro_sound () {
             Timeout.add (200, () => {
                 rendering_synth.noteon (23, 65, 110);
                 return false;
@@ -207,44 +347,36 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             }
         }
 
-        internal static uint32 get_buffer_size () {
-            return buffer_size;
-        }
-
-        internal static int64 get_process_start_time () {
-            return processing_start_time;
-        }
-
-        private void edit_master_reverb (int level) {
+        protected void edit_master_reverb (int level) {
             if (rendering_synth != null) {
-                rendering_synth.set_reverb_group_roomsize (-1, SynthSettingsPresets.ReverbPresets.ROOM_SIZE[level]);
+                rendering_synth.set_reverb_group_roomsize (-1, SynthModPresets.ReverbPresets.ROOM_SIZE[level]);
                 rendering_synth.set_reverb_group_damp (-1, 0.1);
-                rendering_synth.set_reverb_group_width (-1, SynthSettingsPresets.ReverbPresets.WIDTH[level]);
-                rendering_synth.set_reverb_group_level (-1, SynthSettingsPresets.ReverbPresets.LEVEL[level]);
+                rendering_synth.set_reverb_group_width (-1, SynthModPresets.ReverbPresets.WIDTH[level]);
+                rendering_synth.set_reverb_group_level (-1, SynthModPresets.ReverbPresets.LEVEL[level]);
             }
         }
 
-        private void set_master_reverb_active (bool active) {
+        protected void set_master_reverb_active (bool active) {
             if (rendering_synth != null) {
                 rendering_synth.reverb_on (-1, active);
             }
         }
 
-        private void edit_master_chorus (int level) {
+        protected void edit_master_chorus (int level) {
             if (rendering_synth != null) {
-                rendering_synth.set_chorus_group_depth (-1, SynthSettingsPresets.ChorusPresets.DEPTH[level]);
-                rendering_synth.set_chorus_group_level (-1, SynthSettingsPresets.ChorusPresets.LEVEL[level]);
-                rendering_synth.set_chorus_group_nr (-1, SynthSettingsPresets.ChorusPresets.NR[level]);
+                rendering_synth.set_chorus_group_depth (-1, SynthModPresets.ChorusPresets.DEPTH[level]);
+                rendering_synth.set_chorus_group_level (-1, SynthModPresets.ChorusPresets.LEVEL[level]);
+                rendering_synth.set_chorus_group_nr (-1, SynthModPresets.ChorusPresets.NR[level]);
             }
         }
 
-        private void set_master_chorus_active (bool active) {
+        protected void set_master_chorus_active (bool active) {
             if (rendering_synth != null) {
                 rendering_synth.chorus_on (-1, active);
             }
         }
 
-        private int send_midi_event (MIDIEvent event) {
+        protected int send_midi (MIDIEvent event) {
             bool handled = false;
 
             var fluid_midi_ev = new Fluid.MIDIEvent ();
@@ -262,7 +394,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
                 }
             }
 
-            on_midi_event (event);
+            on_midi (event);
 
             if (handled) {
                 return Fluid.OK;
@@ -271,7 +403,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             return rendering_synth.handle_midi_event (fluid_midi_ev);
         }
 
-        public int send_midi_event_for_player (Fluid.MIDIEvent event) {
+        protected int send_f_midi (Fluid.MIDIEvent event) {
             int type = event.get_type ();
             int chan = event.get_channel ();
             int cont = event.get_control ();
@@ -310,12 +442,12 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
                 //  velocity_buffer[chan] = value;
             }
 
-            on_midi_event_from_player (event);
+            on_f_midi (event);
 
             return rendering_synth.handle_midi_event (event);
         }
 
-        public void halt_notes (bool except_drums) {
+        protected void halt_notes (bool except_drums = true) {
             for (uint8 i = 0; i < 16; i++) {
                 if (!except_drums || (i != 9 && i != 10)) {
                     rendering_synth.all_notes_off (i);
@@ -323,7 +455,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             }
         }
 
-        public void stop_all_sounds () {
+        protected void stop_all_sounds () {
             for (uint8 i = 0; i < 16; i++) {
                 rendering_synth.all_sounds_off (i);
             }

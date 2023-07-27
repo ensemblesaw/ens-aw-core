@@ -3,7 +3,6 @@ interfaces = files(
     'interfaces/IAWCore.vala',
 
     'interfaces/AudioEngine/ISynthEngine.vala',
-    'interfaces/AudioEngine/ISynthProvider.vala',
 
     'interfaces/Analysers/IVoiceAnalyser.vala',
 
@@ -21,8 +20,8 @@ classes = files (
     'classes/AWCore.vala',
 
     'classes/AudioEngine/SynthEngine.vala',
-    'classes/AudioEngine/SynthProvider.vala',
-    'classes/AudioEngine/SynthSettingsPresets.vala',
+    'classes/AudioEngine/SynthSettings.vala',
+    'classes/AudioEngine/SynthModPresets.vala',
 
     'classes/Analysers/ChordAnalyser.vala',
     'classes/Analysers/StyleAnalyser.vala',

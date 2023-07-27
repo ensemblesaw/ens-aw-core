@@ -1,13 +1,15 @@
+using Ensembles.ArrangerWorkstation.AudioEngine;
+
 namespace Ensembles.ArrangerWorkstation {
     public class AWBuilder : Object {
-        internal AWCore.Driver driver = AWCore.Driver.ALSA;
+        internal ISynthEngine.Driver driver = ISynthEngine.Driver.ALSA;
         internal string sf2_dir = "~/";
         internal string sf2_name = "Ensembles";
         internal List<string> style_search_paths = new List<string> ();
 
         public delegate void AWBuilderCallback (AWBuilder arranger_workstation_builder);
 
-        public AWBuilder use_driver (AWCore.Driver driver) {
+        public AWBuilder use_driver (ISynthEngine.Driver driver) {
             this.driver = driver;
             return this;
         }

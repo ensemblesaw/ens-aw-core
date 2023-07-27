@@ -17,16 +17,13 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
      */
     public class StyleEngine : Object, IStyleEngine {
         // Style data
-        private unowned Style style;
+        public unowned Style style { get; construct; }
 
         // Synth Engine Reference
-        private unowned ISynthEngine synth_engine;
+        public unowned ISynthEngine synth_engine { get; construct; }
 
         // Fluid Player for style
         private Fluid.Player style_player;
-
-        // Utility synth for playing style file
-        private unowned Fluid.Synth utility_synth;
 
         // Player state
         private uint32 absolute_beat_number = 0;
@@ -93,13 +90,14 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
          * @param current_tempo If this value is greater than 0 then the style
          * engine will be initialized with this value.
          */
-        public StyleEngine (ISynthProvider synth_provider, ISynthEngine synth_engine, Models.Style? style,
+        public StyleEngine (ISynthEngine synth_engine, Models.Style? style,
             uint8? custom_tempo = 0) {
-            this.style = style;
-            this.synth_engine = synth_engine;
-            utility_synth = synth_provider.get_synth (SynthType.UTILITY);
+            Object (
+                style: style,
+                synth_engine: synth_engine
+            );
 
-            style_player = new Fluid.Player (utility_synth);
+            style_player = new Fluid.Player (synth_engine.utility_synth);
             style_player.set_tick_callback ( (style_engine_ref, ticks) => {
                 return ((StyleEngine?)style_engine_ref).parse_ticks (ticks);
             }, this);
@@ -140,14 +138,14 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
                 }
             }
 
-            synth_engine.halt_notes (true);
+            synth_engine.halt_notes ();
         }
 
         private int parse_ticks (int ticks) {
             // If there is a chord change
             if (queue_chord_change) {
                 queue_chord_change = false;
-                synth_engine.halt_notes (true);
+                synth_engine.halt_notes ();
                 for (uint8 channel = 0; channel < 16; channel++) {
                     if ((channel < 9 || channel > 10) && channel_note_on[channel] >= 0) {
                         resend_key (channel_note_on[channel], channel);
@@ -515,7 +513,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
             }
 
             // Send data to synth
-            synth_engine.send_midi_event_for_player (new_event);
+            synth_engine.send_f_midi (new_event);
 
             return Fluid.OK;
         }
@@ -529,7 +527,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
                 chord, style.scale_type, alt_channels_active));
             new_event.set_velocity ((value >> 16) & 0xFFFF);
 
-            synth_engine.send_midi_event_for_player (new_event);
+            synth_engine.send_f_midi (new_event);
         }
 
         /**
