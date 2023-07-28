@@ -223,6 +223,10 @@ namespace Ensembles.ArrangerWorkstation {
             return synth_engine.send_midi (event) == Fluid.OK;
         }
 
+        public void set_voice (Ensembles.VoiceHandPosition hand_position, uint8 bank, uint8 preset) {
+            synth_engine.set_voice (hand_position, bank, preset);
+        }
+
 
         // STYLE ENGINE ////////////////////////////////////////////////////////
         public void style_engine_queue_style (Models.Style style) {

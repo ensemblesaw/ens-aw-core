@@ -85,6 +85,7 @@ namespace Ensembles.ArrangerWorkstation {
 
         /* Methods ************************************************************/
         public abstract bool send_midi (MIDIEvent event);
+        public abstract void set_voice (VoiceHandPosition hand_position, uint8 bank, uint8 preset);
 
         // STYLE ENGINE ////////////////////////////////////////////////////////
 
