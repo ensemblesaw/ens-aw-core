@@ -9,21 +9,23 @@ using Ensembles.ArrangerWorkstation.AudioEngine;
 namespace Ensembles.ArrangerWorkstation.Analysers {
     public class VoiceAnalyser : Object, IVoiceAnalyser {
         private List<Voice?> voice_list;
-
-        private string sf_path;
-        private string sf_schema_path;
-
         private unowned Fluid.SoundFont soundfont;
 
-        private IAWCore i_aw_core;
+        public unowned IAWCore aw_core { private get; construct; }
+        public string sf_path { private get; construct; }
+        public string sf_schema_path { private get; construct; }
 
         public VoiceAnalyser (
-            IAWCore i_aw_core,
+            IAWCore aw_core,
             Fluid.Synth utility_synth,
             string sf_path,
             string sf_schema_path
         ) {
-            this.i_aw_core = i_aw_core;
+            Object (
+                aw_core: aw_core,
+                sf_path: sf_path,
+                sf_schema_path: sf_schema_path
+            );
 
             voice_list = new List<Voice?> ();
             soundfont = utility_synth.get_sfont (0);
@@ -66,7 +68,7 @@ namespace Ensembles.ArrangerWorkstation.Analysers {
 
 
                 Thread.usleep (15000);
-                i_aw_core.send_loading_status (_("Loading Voice: ") + voice_name + "…");
+                aw_core.send_loading_status (_("Loading Voice: ") + voice_name + "…");
 
                 sf_preset = soundfont.iteration_next ();
             }

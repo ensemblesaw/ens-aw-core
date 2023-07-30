@@ -78,7 +78,7 @@ namespace Ensembles.Models {
             EXPRESSION = 0x0B,
             PITCH = 0x42,
             RESONANCE = 0x47,
-            CUT_OFF = 0x4A,
+            BRIGHTNESS = 0x4A,
             EXPLICIT_BANK_SELECT = 0x55,
             REVERB = 0x5B,
             CHORUS = 0x5D

@@ -260,9 +260,9 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
 
         private void set_synth_defaults () {
             // CutOff for Realtime synth
-            rendering_synth.cc (17, MIDIEvent.Control.CUT_OFF, 40);
-            rendering_synth.cc (18, MIDIEvent.Control.CUT_OFF, 0);
-            rendering_synth.cc (19, MIDIEvent.Control.CUT_OFF, 0);
+            rendering_synth.cc (17, MIDIEvent.Control.BRIGHTNESS, 88);
+            rendering_synth.cc (18, MIDIEvent.Control.BRIGHTNESS, 108);
+            rendering_synth.cc (19, MIDIEvent.Control.BRIGHTNESS, 120);
 
             // Reverb and Chorus for R1 voice
             rendering_synth.cc (17, MIDIEvent.Control.REVERB, 100);
@@ -271,7 +271,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             // Reverb and Chorus for intro tone
             rendering_synth.cc (23, MIDIEvent.Control.REVERB, 127);
             rendering_synth.cc (23, MIDIEvent.Control.CHORUS, 100);
-            rendering_synth.cc (23, MIDIEvent.Control.CUT_OFF, 40);
+            rendering_synth.cc (23, MIDIEvent.Control.BRIGHTNESS, 88);
             rendering_synth.cc (23, MIDIEvent.Control.RESONANCE, 80);
 
             // Reverb and Chorus for Metronome
@@ -291,7 +291,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
 
             // Default cut-off and resonance for recorder
             for (int i = 24; i < 64; i++) {
-                rendering_synth.cc (i, MIDIEvent.Control.CUT_OFF, 40);
+                rendering_synth.cc (i, MIDIEvent.Control.BRIGHTNESS, 40);
                 rendering_synth.cc (i, MIDIEvent.Control.RESONANCE, 10);
             }
 
@@ -388,6 +388,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             fluid_midi_ev.set_channel (event.channel);
             fluid_midi_ev.set_control (event.control);
             fluid_midi_ev.set_value (event.value);
+            fluid_midi_ev.set_key (event.key);
             fluid_midi_ev.set_velocity (event.velocity);
             foreach (var rack in racks) {
                 var voice_rack = rack as Racks.VoiceRack;
