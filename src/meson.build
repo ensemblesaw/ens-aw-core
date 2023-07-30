@@ -1,13 +1,8 @@
 interfaces = files(
-    # Core
     'interfaces/IAWCore.vala',
-
     'interfaces/AudioEngine/ISynthEngine.vala',
-
     'interfaces/Analysers/IVoiceAnalyser.vala',
-
     'interfaces/FileLoaders/IStyleFileLoader.vala',
-
     'interfaces/MIDIPlayers/IStyleEngine.vala'
 )
 
@@ -16,24 +11,27 @@ classes = files (
     'classes/AWBuilder.vala',
     # Service
     'classes/Service.vala',
-    # Core
+    # Core facade
     'classes/AWCore.vala',
 
+    # Audio engine
     'classes/AudioEngine/SynthEngine.vala',
     'classes/AudioEngine/SynthSettings.vala',
     'classes/AudioEngine/SynthModPresets.vala',
 
+    # Drivers
+    'classes/Drivers/MIDIDriver.vala',
+
+    # Analysers
     'classes/Analysers/ChordAnalyser.vala',
     'classes/Analysers/StyleAnalyser.vala',
     'classes/Analysers/VoiceAnalyser.vala',
 
+    # File loaders
     'classes/FileLoaders/StyleFileLoader.vala',
 
+    # MIDI players
     'classes/MIDIPlayers/StyleEngine.vala',
-
-    'classes/Racks/Rack.vala',
-    'classes/Racks/DSPRack.vala',
-    'classes/Racks/VoiceRack.vala',
 
     # Utilities
     'classes/Utils/ErrorDomains.vala',
@@ -56,6 +54,11 @@ classes = files (
     # Audio Plugins
     'classes/Plugins/AudioPlugins/AudioPlugin.vala',
     'classes/Plugins/AudioPlugins/Port.vala',
+
+    # Plugin Racks
+    'classes/Racks/Rack.vala',
+    'classes/Racks/DSPRack.vala',
+    'classes/Racks/VoiceRack.vala',
 
     # LV2 Plugins
     'classes/Plugins/AudioPlugins/Lv2/LV2Manager.vala',

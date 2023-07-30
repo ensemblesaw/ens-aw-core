@@ -4,6 +4,7 @@
  */
 
 using Ensembles.ArrangerWorkstation.AudioEngine;
+using Ensembles.ArrangerWorkstation.Drivers;
 using Ensembles.ArrangerWorkstation.MIDIPlayers;
 using Ensembles.ArrangerWorkstation.Plugins;
 using Ensembles.ArrangerWorkstation.Racks;
@@ -22,6 +23,7 @@ namespace Ensembles.ArrangerWorkstation {
         public string sf2_name { get; construct; }
 
         private ISynthEngine synth_engine;
+        private MIDIDriver midi_driver;
         private StyleEngine style_engine;
         private PluginManager plugin_manager;
         private DSPRack main_dsp_rack;
@@ -73,6 +75,8 @@ namespace Ensembles.ArrangerWorkstation {
             } catch (FluidError e) {
                 Console.log (e.message, Console.LogLevel.ERROR);
             }
+
+            midi_driver = new MIDIDriver (true);
         }
 
         private AWCore () { }
