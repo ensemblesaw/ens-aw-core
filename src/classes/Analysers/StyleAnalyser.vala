@@ -150,11 +150,13 @@ namespace Ensembles.ArrangerWorkstation.Analysers {
                                 ? scale_type_index - marker_token_index - 1: -1));
                         }
 
-                        int i_scale_type = 0;
-                        if (scale_type_index > 0 && scale_type_index < marker_str_length) {
-                            i_scale_type = int.parse (str.substring (scale_type_index + 1));
+                        if (expected_part_index == 0) {
+                            int i_scale_type = 0;
+                            if (scale_type_index > 0 && scale_type_index < marker_str_length) {
+                                i_scale_type = int.parse (str.substring (scale_type_index + 1));
+                            }
+                            scale_type = i_scale_type > 0;
                         }
-                        scale_type = i_scale_type > 0;
 
                         var marker_name = str.substring (0, marker_token_index);
 

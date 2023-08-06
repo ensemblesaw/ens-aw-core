@@ -23,7 +23,7 @@ namespace Ensembles.ArrangerWorkstation {
         public string sf2_name { get; construct; }
 
         private ISynthEngine synth_engine;
-        private MIDIDriver midi_driver;
+        private MIDIInputHost midi_driver;
         private StyleEngine style_engine;
         private PluginManager plugin_manager;
         private DSPRack main_dsp_rack;
@@ -72,11 +72,12 @@ namespace Ensembles.ArrangerWorkstation {
                 synth_engine.on_midi_receive.connect ((event) => {
                     return on_midi_receive (event) ? Fluid.OK : Fluid.FAILED;
                 });
+
+                midi_driver = new MIDIInputHost (synth_engine, false);
+
             } catch (FluidError e) {
                 Console.log (e.message, Console.LogLevel.ERROR);
             }
-
-            midi_driver = new MIDIDriver (true);
         }
 
         private AWCore () { }

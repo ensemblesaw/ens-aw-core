@@ -20,7 +20,7 @@ classes = files (
     'classes/AudioEngine/SynthModPresets.vala',
 
     # Drivers
-    'classes/Drivers/MIDIDriver.vala',
+    'classes/Drivers/MIDIInputHost.vala',
 
     # Analysers
     'classes/Analysers/ChordAnalyser.vala',

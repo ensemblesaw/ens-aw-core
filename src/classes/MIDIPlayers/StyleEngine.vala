@@ -59,7 +59,10 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
         };
 
         // Chord data
-        private Chord chord;
+        private Chord chord = Chord() {
+            root = ChordRoot.C,
+            type = ChordType.MAJOR
+        };
         private bool alt_channels_active = false;
         private HashTable<StylePartType, StylePartBounds?> part_bounds_map;
 
@@ -336,7 +339,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
                             // wait for current measure to end
                             current_variation = current_part;
                             if (current_part == next_part) {
-                                if (ticks >= current_part_bounds.end) {
+                                if (ticks + 1 >= current_part_bounds.end) {
                                     return seek_measure (part_bounds_map.get (next_part).start);
                                 }
                             } else {
@@ -448,35 +451,38 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
             int value = event.get_value ();
             int velocity = event.get_velocity ();
 
+            //  print("Control %d Channel %d Value %d\n", control,channel, value);
+
             // Bypass voice halt signal
             if (control == 120) {
                 return Fluid.OK;
             }
             // Check if alt_channel signal is active
-            else if (channel == 11 && control == 82) {
+            else if (channel == 11 && control == MIDIEvent.Control.ALT_CHANNEL) {
                 alt_channels_active = value > 63;
             }
 
             // If alt channels is enabled, that means it will disable half of
             // the channels based on the scale type
-            if (type == MIDIEvent.EventType.NOTE_ON && alt_channels_active) {
-                if (style.scale_type != chord.type) {
-                    if (channel == 0 ||
-                        channel == 2 ||
-                        channel == 3 ||
-                        channel == 4 ||
-                        channel == 6 ||
-                        channel == 7) {
+            if (type == MIDIEvent.EventType.NOTE_ON) {
+                if (alt_channels_active) {
+                    if (style.scale_type != chord.type) {
+                        if (channel >= 0 &&
+                            channel != 1 &&
+                            channel < 9) {
+                            return Fluid.OK;
+                        }
+                    } else {
+                        if (channel > 10 &&
+                            channel < 16) {
+                            return Fluid.OK;
+                        }
+                    }
+                } else {
+                    if (channel > 10 &&
+                        channel < 16) {
                         return Fluid.OK;
                     }
-                }
-            } else {
-                if (channel == 11 ||
-                    channel == 12 ||
-                    channel == 13 ||
-                    channel == 14 ||
-                    channel == 15) {
-                    return Fluid.OK;
                 }
             }
 

@@ -81,7 +81,8 @@ namespace Ensembles.Models {
             BRIGHTNESS = 0x4A,
             EXPLICIT_BANK_SELECT = 0x55,
             REVERB = 0x5B,
-            CHORUS = 0x5D
+            CHORUS = 0x5D,
+            ALT_CHANNEL = 0x52
         }
 
         public EventType event_type { get; set; }
