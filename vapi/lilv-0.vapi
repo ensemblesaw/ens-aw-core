@@ -66,6 +66,7 @@ namespace Lilv {
         public unowned PluginClass get_class();
         public Nodes get_value(Node predicate);
         public bool has_feature(Node feature_uri);
+        public bool has_extension_data(Node uri);
         public Nodes get_supported_features();
         public Nodes get_required_features();
         public Nodes get_optional_features();
