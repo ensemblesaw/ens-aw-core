@@ -64,19 +64,19 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         private LV2.Feature*[] features;
         private const string[] SUPPORTED_FEATURE_URIS = {
             LV2.URID._map,
-            LV2.URID._unmap
-            //  LV2.Worker._schedule
+            LV2.URID._unmap,
+            LV2.Worker._schedule
         };
 
         LV2.Feature urid_map_feature;
         LV2.Feature urid_unmap_feature;
-        //  LV2.Feature scheduler_feature;
+        LV2.Feature scheduler_feature;
         //  LV2.Feature options_feature;
 
         // Feature Maps
         LV2.URID.UridMap urid_map;
         LV2.URID.UridUnmap urid_unmap;
-        //  LV2.Worker.Schedule schedule;
+        LV2.Worker.Schedule schedule;
 
         // Plugin Worker Thread
         LV2Worker worker;
@@ -364,31 +364,41 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
 
         private void setup_workers () {
             Zix.Sem.init (out plugin_sem_lock, 1);
-            worker = new LV2Worker (plugin_sem_lock, true);
-            worker.handle = (LV2.Handle) this;
+
+            // Create workers if necessary
+            if (lilv_plugin.has_extension_data (LV2Manager.get_node_by_uri (LV2.Worker._interface))) {
+                worker = new LV2Worker (plugin_sem_lock, true);
+                if (!worker.valid) {
+                    worker = null;  // Discard if there is an error
+                } else {
+                    worker.handle = (LV2.Handle) this;
+                }
+            }
         }
 
         /**
          * Create plugin features
          */
         private void create_features () {
+            features = new LV2.Feature* [2];
+
             urid_map = LV2.URID.UridMap ();
             urid_map.map = lv2_manager.map_uri;
+            urid_map_feature = register_feature (LV2.URID._map, &urid_map);
+            features[0] = &urid_map_feature;
 
             urid_unmap = LV2.URID.UridUnmap ();
             urid_unmap.unmap = lv2_manager.unmap_uri;
-
-            //  schedule = LV2.Worker.Schedule ();
-            //  schedule.schedule_work = worker.schedule;
-
-            features = new LV2.Feature* [2];
-            urid_map_feature = register_feature (LV2.URID._map, &urid_map);
             urid_unmap_feature = register_feature (LV2.URID._unmap, &urid_unmap);
-            //  scheduler_feature = register_feature (LV2.Worker._schedule, &schedule);
-
-            features[0] = &urid_map_feature;
             features[1] = &urid_unmap_feature;
-            //  features[2] = &scheduler_feature;
+
+            if (worker != null) {
+                schedule = LV2.Worker.Schedule ();
+                schedule.schedule_work = worker.schedule;
+                scheduler_feature = register_feature (LV2.Worker._schedule, &schedule);
+                features.resize (features.length + 1);
+                features[features.length - 1] = &scheduler_feature;
+            }
         }
 
         private bool features_are_supported () {

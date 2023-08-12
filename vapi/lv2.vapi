@@ -474,7 +474,7 @@ namespace LV2.Worker {
 
     public const string PREFIX;
 
-    public const string _Interface;
+    public const string _interface;
     public const string _schedule;
 
     [CCode (cname = "interface_work_t", has_target = false)]
