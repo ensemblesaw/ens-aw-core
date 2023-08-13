@@ -125,7 +125,7 @@ namespace Zix {
     [SimpleType]
     [CCode (cheader_filename = "zix/thread.h", cname = "ZixThread", cprefix = "zix_thread_", destroy_function = "", has_type_id = false)]
     public struct Thread {
-        public static Status create (out Thread thread, size_t stack_size, ThreadFunc function, void* arg);
+        public static Status create (out Thread thread, size_t stack_size, ThreadFunc function);
         public Status join ();
     }
 
