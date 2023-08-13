@@ -66,7 +66,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins {
          * This just means that the plugin data is created. A Plugin cannot be
          * used without instantiation.
          */
-        public abstract void instantiate ();
+        public abstract void instantiate () throws PluginError;
 
         protected abstract void activate ();
 

@@ -62,11 +62,6 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
 
         // LV2 Features ////////////////////////////////////////////////////////
         private LV2.Feature*[] features;
-        private const string[] SUPPORTED_FEATURE_URIS = {
-            LV2.URID._map,
-            LV2.URID._unmap,
-            LV2.Worker._schedule
-        };
 
         LV2.Feature urid_map_feature;
         LV2.Feature urid_unmap_feature;
@@ -101,15 +96,11 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         public unowned Lilv.Plugin? lilv_plugin { get; protected set; }
         public unowned LV2Manager? lv2_manager { get; protected set; }
 
-        public LV2Plugin (Lilv.Plugin? lilv_plugin, LV2Manager? manager) throws PluginError {
+        public LV2Plugin (Lilv.Plugin? lilv_plugin, LV2Manager? manager) {
             Object (
                 lilv_plugin: lilv_plugin,
                 lv2_manager: manager
             );
-
-            if (!features_are_supported ()) {
-                throw new PluginError.UNSUPPORTED_FEATURE ("Feature not supported");
-            }
 
             name = lilv_plugin.get_name ().as_string ();
             plugin_uri = lilv_plugin.get_uri ().as_uri ();
@@ -160,12 +151,16 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
          * Instantiate must be called on this object before connecting any ports
          * or running the plugin.
          */
-        public override void instantiate () {
+        public override void instantiate () throws PluginError {
             if (lv2_instance_l == null) {
                 Console.log("Instantiating LV2 Plugin %s, with URI: %s".printf(name, plugin_uri));
                 active = false;
                 setup_workers ();
                 create_features ();
+
+                if (!features_are_supported ()) {
+                    throw new PluginError.UNSUPPORTED_FEATURE ("Feature not supported");
+                }
 
                 lv2_instance_l = lilv_plugin.instantiate (AudioEngine.SynthEngine.sample_rate, features);
                 // Check if plugin is mono
@@ -366,14 +361,14 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             Zix.Sem.init (out plugin_sem_lock, 1);
 
             // Create workers if necessary
-            if (lilv_plugin.has_extension_data (LV2Manager.get_node_by_uri (LV2.Worker._interface))) {
-                worker = new LV2Worker (plugin_sem_lock, true);
-                if (!worker.valid) {
-                    worker = null;  // Discard if there is an error
-                } else {
-                    worker.handle = (LV2.Handle) this;
-                }
-            }
+            //  if (lilv_plugin.has_extension_data (LV2Manager.get_node_by_uri (LV2.Worker._interface))) {
+            //      worker = new LV2Worker (plugin_sem_lock, true);
+            //      if (!worker.valid) {
+            //          worker = null;  // Discard if there is an error
+            //      } else {
+            //          worker.handle = (LV2.Handle) this;
+            //      }
+            //  }
         }
 
         /**
@@ -392,13 +387,13 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             urid_unmap_feature = register_feature (LV2.URID._unmap, &urid_unmap);
             features[1] = &urid_unmap_feature;
 
-            if (worker != null) {
-                schedule = LV2.Worker.Schedule ();
-                schedule.schedule_work = worker.schedule;
-                scheduler_feature = register_feature (LV2.Worker._schedule, &schedule);
-                features.resize (features.length + 1);
-                features[features.length - 1] = &scheduler_feature;
-            }
+            //  if (worker != null) {
+            //      schedule = LV2.Worker.Schedule ();
+            //      schedule.schedule_work = worker.schedule;
+            //      scheduler_feature = register_feature (LV2.Worker._schedule, &schedule);
+            //      features.resize (features.length + 1);
+            //      features[features.length - 1] = &scheduler_feature;
+            //  }
         }
 
         private bool features_are_supported () {
@@ -415,9 +410,9 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             return true;
         }
 
-        private bool feature_supported (string feature) {
-            for (uint8 i = 0; i < SUPPORTED_FEATURE_URIS.length; i++) {
-                if (feature == SUPPORTED_FEATURE_URIS[i]) {
+        private bool feature_supported (string feature_uri) {
+            for (uint8 i = 0; i < features.length; i++) {
+                if (feature_uri == features[i].URI) {
                     return true;
                 }
             }

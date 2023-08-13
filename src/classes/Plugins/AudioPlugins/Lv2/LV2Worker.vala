@@ -126,7 +126,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             if (st != Zix.Status.SUCCESS) {
                 return st;
             } else {
-                st = Zix.Thread.create (out thread, MAX_PACKET_SIZE, func);
+                st = Zix.Thread.create (out thread, MAX_PACKET_SIZE, func, this);
 
                 if (st != Zix.Status.SUCCESS) {
                     return st;
