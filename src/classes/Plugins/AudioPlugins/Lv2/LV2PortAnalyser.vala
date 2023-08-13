@@ -85,7 +85,9 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         public List<LV2AtomPort> atom_out_port_list;
 
         // Atom ports classifications
+        public uint16 n_atom_seq_in_ports { get; private set; }
         public uint16 n_atom_midi_in_ports { get; private set; }
+        public uint16 n_atom_seq_out_ports { get; private set; }
         public uint16 n_atom_midi_out_ports { get; private set; }
 
         /**
@@ -225,10 +227,17 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                         );
 
                         if (
-                            (flags & LV2AtomPort.Flags.SUPPORTS_MIDI_EVENT) >
+                            (flags & LV2AtomPort.Flags.SEQUENCE) >
                             LV2AtomPort.Flags.NONE
                         ) {
-                            n_atom_midi_in_ports++;
+                            n_atom_seq_in_ports++;
+
+                            if (
+                                (flags & LV2AtomPort.Flags.SUPPORTS_MIDI_EVENT) >
+                                LV2AtomPort.Flags.NONE
+                            ) {
+                                n_atom_midi_in_ports++;
+                            }
                         }
                     } else if (is_output_port) {
                         atom_out_port_list.append (
@@ -243,10 +252,17 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                         );
 
                         if (
-                            (flags & LV2AtomPort.Flags.SUPPORTS_MIDI_EVENT) >
+                            (flags & LV2AtomPort.Flags.SEQUENCE) >
                             LV2AtomPort.Flags.NONE
                         ) {
-                            n_atom_midi_out_ports++;
+                            n_atom_seq_out_ports++;
+
+                            if (
+                                (flags & LV2AtomPort.Flags.SUPPORTS_MIDI_EVENT) >
+                                LV2AtomPort.Flags.NONE
+                            ) {
+                                n_atom_midi_out_ports++;
+                            }
                         }
                     }
                 }

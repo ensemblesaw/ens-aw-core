@@ -28,8 +28,8 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins {
         /**
          * The technology this plugin is based on
          */
-        public Protocol protocol { get; protected set; }
-        public Category category { get; protected set; }
+        public Protocol protocol { get; construct; }
+        public Category category { get; protected set construct; }
 
         public bool stereo_source { get; protected set; }
         public bool stereo_sink { get; protected set; }
@@ -74,6 +74,6 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins {
          */
         public abstract void process (uint32 sample_count);
 
-        public abstract AudioPlugin duplicate () throws PluginError;
+        public abstract AudioPlugin duplicate ();
     }
 }

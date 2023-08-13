@@ -14,24 +14,27 @@ namespace Ensembles.ArrangerWorkstation.Plugins {
         /**
          * Name of the plugin.
          */
-        public string name { get; protected set; }
+        public string name { get; construct; }
         /**
          * Name of the author of this plugin.
          */
-        public string author_name { get; protected set; }
+        public string author_name { get; construct; }
         /**
          * Email address of the author of this plugin.
          */
-        public string author_email { get; protected set; }
+        public string author_email { get; construct; }
         /**
          * Homepage or the main URL of the plugin.
          */
-        public string author_homepage { get; protected set; }
+        public string author_homepage { get; construct; }
         /**
          * The license associated with this plugin.
          */
-        public string license { get; protected set; }
-        public bool has_ui { get; protected set; }
+        public string license { get; construct; }
+        /**
+         * Whether the plugin can have an UI.
+         */
+        public bool has_ui { get; protected set construct; }
 
         private bool _active;
 
@@ -43,18 +46,19 @@ namespace Ensembles.ArrangerWorkstation.Plugins {
                 return _active;
             }
             set {
-                _active = value;
-                if (value) {
-                    activate ();
-                } else {
-                    deactivate ();
+                if (_active != value) {
+                    _active = value;
+                    if (value) {
+                        activate ();
+                    } else {
+                        deactivate ();
+                    }
                 }
             }
         }
 
         protected Plugin () {
             active = false;
-            instantiate ();
         }
 
         ~Plugin () {

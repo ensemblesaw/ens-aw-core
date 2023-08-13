@@ -57,8 +57,8 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
      * that add more advanced functionality.
      */
     public class LV2Plugin : AudioPlugin {
-        public string plugin_uri { get; private set; }
-        public string plugin_class { get; private set; }
+        public string plugin_uri { get; construct; }
+        public string plugin_class { get; construct; }
 
         // LV2 Features ////////////////////////////////////////////////////////
         private LV2.Feature*[] features;
@@ -87,30 +87,33 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         public float[] control_in_variables;
 
         // Atom ports
-        // MIDI
-        public LV2AtomPort[] atom_midi_in_ports;
+        // Sequence
+        public LV2AtomPort[] atom_sequence_in_ports;
+        public LV2EvBuf[] atom_sequence_in_variables;
+        public LV2AtomPort[] atom_sequence_out_ports;
+        public LV2EvBuf[] atom_sequence_out_variables;
+
         public Fluid.MIDIEvent[] midi_event_buffer;
-        public LV2EvBuf[] atom_midi_in_variables;
         public uint8 midi_input_event_count;
 
-        public unowned Lilv.Plugin? lilv_plugin { get; protected set; }
-        public unowned LV2Manager? lv2_manager { get; protected set; }
+        public unowned Lilv.Plugin? lilv_plugin { get; construct; }
+        public unowned LV2Manager? lv2_manager { get; construct; }
 
         public LV2Plugin (Lilv.Plugin? lilv_plugin, LV2Manager? manager) {
             Object (
                 lilv_plugin: lilv_plugin,
-                lv2_manager: manager
+                lv2_manager: manager,
+                name: lilv_plugin.get_name ().as_string (),
+                plugin_uri: lilv_plugin.get_uri ().as_uri (),
+                plugin_class: lilv_plugin.get_class ().get_label ().as_string (),
+                author_name: lilv_plugin.get_author_name ().as_string (),
+                author_email: lilv_plugin.get_author_email ().as_string (),
+                author_homepage: lilv_plugin.get_author_homepage ().as_string (),
+                protocol: Protocol.LV2
             );
+        }
 
-            name = lilv_plugin.get_name ().as_string ();
-            plugin_uri = lilv_plugin.get_uri ().as_uri ();
-            plugin_class = lilv_plugin.get_class ().get_label ().as_string ();
-            author_name = lilv_plugin.get_author_name ().as_string ();
-            author_email = lilv_plugin.get_author_email ().as_string ();
-            author_homepage = lilv_plugin.get_author_homepage ().as_string ();
-
-            protocol = Protocol.LV2;
-
+        construct {
             // Get all ports from plugin
             var port_analyser = new LV2PortAnalyser (lilv_plugin);
             if (port_analyser.control_in_port_list.length () > 0) {
@@ -125,7 +128,21 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                 (
                     plugin_class.contains ("Amplifier") ||
                     plugin_class.contains ("Utility") ||
-                    plugin_class.contains ("Reverb")
+                    plugin_class.contains ("Reverb") ||
+                    plugin_class.contains ("Delay") ||
+                    plugin_class.contains ("Distortion") ||
+                    plugin_class.contains ("Compressor") ||
+                    plugin_class.contains ("Envelope") ||
+                    plugin_class.contains ("Dynamics") ||
+                    plugin_class.contains ("Gate") ||
+                    plugin_class.contains ("Limiter") ||
+                    plugin_class.contains ("Expander") ||
+                    plugin_class.contains ("Filter") ||
+                    plugin_class.contains ("EQ") ||
+                    plugin_class.contains ("Flanger") ||
+                    plugin_class.contains ("Spatial") ||
+                    plugin_class.contains ("Phaser") ||
+                    plugin_class.contains ("Waveshaper")
                 ) && (
                     port_analyser.audio_in_port_list.length () > 0 &&
                     port_analyser.audio_out_port_list.length () > 0
@@ -136,7 +153,6 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                 plugin_class == "Instrument Plugin" ||
                 (
                     port_analyser.n_atom_midi_in_ports > 0 &&
-                    port_analyser.audio_in_port_list.length () > 0 &&
                     port_analyser.audio_out_port_list.length () > 0
                 )
             ) {
@@ -162,15 +178,16 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                     throw new PluginError.UNSUPPORTED_FEATURE ("Feature not supported");
                 }
 
+                create_ports ();
+
                 lv2_instance_l = lilv_plugin.instantiate (AudioEngine.SynthEngine.sample_rate, features);
                 // Check if plugin is mono
                 if (!stereo) {
                     lv2_instance_r = lilv_plugin.instantiate (AudioEngine.SynthEngine.sample_rate, features);
                 }
 
-                create_ports ();
                 allocate_control_ports ();
-                allocate_midi_port_buffers ();
+                allocate_sequence_port_buffers ();
             }
         }
 
@@ -182,23 +199,37 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             }
         }
 
-        private void allocate_midi_port_buffers () {
-            atom_midi_in_variables = new LV2EvBuf [atom_midi_in_ports.length];
+        private void allocate_sequence_port_buffers () {
+            atom_sequence_in_variables = new LV2EvBuf [atom_sequence_in_ports.length];
 
-            for (uint8 i = 0; i < atom_midi_in_ports.length; i++) {
-                atom_midi_in_variables[i] = new LV2EvBuf (
+            for (uint16 i = 0; i < atom_sequence_in_ports.length; i++) {
+                atom_sequence_in_variables[i] = new LV2EvBuf (
                     AudioEngine.SynthEngine.buffer_size,
                     lv2_manager.map_uri (LV2.Atom._Chunk),
                     lv2_manager.map_uri (LV2.Atom._Sequence)
                 );
 
-                atom_midi_in_variables[i].reset (true);
+                atom_sequence_in_variables[i].reset (true);
 
-                connect_port (atom_midi_in_ports[i], atom_midi_in_variables[i].get_buffer ());
+                connect_port (atom_sequence_in_ports[i], atom_sequence_in_variables[i].get_buffer ());
+            }
+
+            atom_sequence_out_variables = new LV2EvBuf [atom_sequence_out_ports.length];
+
+            for (uint16 i = 0; i < atom_sequence_out_ports.length; i++) {
+                atom_sequence_out_variables[i] = new LV2EvBuf (
+                    AudioEngine.SynthEngine.buffer_size,
+                    lv2_manager.map_uri (LV2.Atom._Chunk),
+                    lv2_manager.map_uri (LV2.Atom._Sequence)
+                );
+
+                atom_sequence_out_variables[i].reset (true);
+
+                connect_port (atom_sequence_out_ports[i], atom_sequence_out_variables[i].get_buffer ());
             }
         }
 
-        public override AudioPlugin duplicate () throws PluginError {
+        public override AudioPlugin duplicate () {
             return new LV2Plugin (lilv_plugin, lv2_manager);
         }
 
@@ -227,19 +258,15 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                 // Stereo plugin
                 for (uint8 i = 0; i < audio_in_ports.length; i++) {
                     if ((i & 1) == 0) { // If even
-                        if (lv2_instance_l != null) {
-                            lv2_instance_l.connect_port (
-                                audio_in_ports[i].index,
-                                in_l
-                            );
-                        }
+                        lv2_instance_l.connect_port (
+                            audio_in_ports[i].index,
+                            in_l
+                        );
                     } else {
-                        if (lv2_instance_l != null) {
-                            lv2_instance_l.connect_port (
-                                audio_in_ports[i].index,
-                                in_r
-                            );
-                        }
+                        lv2_instance_l.connect_port (
+                            audio_in_ports[i].index,
+                            in_r
+                        );
                     }
                 }
             } else {
@@ -259,19 +286,15 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             if (stereo) {
                 for (uint8 i = 0; i < audio_out_ports.length; i++) {
                     if ((i & 1) == 0) { // If even
-                        if (lv2_instance_l != null) {
-                            lv2_instance_l.connect_port (
-                                audio_out_ports[i].index,
-                                out_l
-                            );
-                        }
+                        lv2_instance_l.connect_port (
+                            audio_out_ports[i].index,
+                            out_l
+                        );
                     } else {
-                        if (lv2_instance_l != null) {
-                            lv2_instance_l.connect_port (
-                                audio_out_ports[i].index,
-                                out_r
-                            );
-                        }
+                        lv2_instance_l.connect_port (
+                            audio_out_ports[i].index,
+                            out_r
+                        );
                     }
                 }
             } else {
@@ -315,38 +338,39 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             return Fluid.FAILED;
         }
 
-        private void fill_event_buffers () {
-            for (uint16 p = 0; p < atom_midi_in_ports.length; p++) {
-                //  unowned LV2AtomPort port = atom_midi_in_ports[p];
-                unowned LV2EvBuf evbuf = atom_midi_in_variables[p];
-                evbuf.reset (true);
-                var iter = evbuf.begin ();
+        private void fill_midi_event_buffers () {
+            for (uint16 p = 0; p < atom_sequence_in_ports.length; p++) {
+                if (atom_sequence_in_ports[p].flags == LV2AtomPort.Flags.SUPPORTS_MIDI_EVENT) {
+                    unowned LV2EvBuf evbuf = atom_sequence_in_variables[p];
+                    evbuf.reset (true);
+                    var iter = evbuf.begin ();
 
-                //  print ("midi buffer size %d\n", midi_event_buffer.length);
+                    //  print ("midi buffer size %d\n", midi_event_buffer.length);
 
-                for (uint8 i = 0; i < midi_input_event_count; i++) {
-                    unowned Fluid.MIDIEvent midi_event = midi_event_buffer[i];
-                    var buffer = new uint8[3];
-                    buffer[0] = (uint8) midi_event.get_type ();
-                    buffer[1] = (uint8) midi_event.get_key ();
-                    buffer[2] = (uint8) midi_event.get_velocity ();
-                    iter.write (
-                        (uint32) (
-                            new DateTime.now_utc ().to_unix () - AudioEngine.SynthEngine.processing_start_time
-                        ),
-                        0,
-                        (uint32) lv2_manager.map_uri (LV2.MIDI._MidiEvent),
-                        3,
-                        buffer
-                    );
+                    for (uint8 i = 0; i < midi_input_event_count; i++) {
+                        unowned Fluid.MIDIEvent midi_event = midi_event_buffer[i];
+                        var buffer = new uint8[3];
+                        buffer[0] = (uint8) midi_event.get_type ();
+                        buffer[1] = (uint8) midi_event.get_key ();
+                        buffer[2] = (uint8) midi_event.get_velocity ();
+                        iter.write (
+                            (uint32) (
+                                new DateTime.now_utc ().to_unix () - AudioEngine.SynthEngine.processing_start_time
+                            ),
+                            0,
+                            (uint32) lv2_manager.map_uri (LV2.MIDI._MidiEvent),
+                            3,
+                            buffer
+                        );
+                    }
                 }
-            }
 
-            midi_input_event_count = 0;
+                midi_input_event_count = 0;
+            }
         }
 
         public override void process (uint32 sample_count) {
-            fill_event_buffers ();
+            fill_midi_event_buffers ();
 
             if (lv2_instance_l != null) {
                 lv2_instance_l.run (sample_count);
@@ -361,14 +385,14 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             Zix.Sem.init (out plugin_sem_lock, 1);
 
             // Create workers if necessary
-            //  if (lilv_plugin.has_extension_data (LV2Manager.get_node_by_uri (LV2.Worker._interface))) {
-            //      worker = new LV2Worker (plugin_sem_lock, true);
-            //      if (!worker.valid) {
-            //          worker = null;  // Discard if there is an error
-            //      } else {
-            //          worker.handle = (LV2.Handle) this;
-            //      }
-            //  }
+            if (lilv_plugin.has_extension_data (LV2Manager.get_node_by_uri (LV2.Worker._interface))) {
+                worker = new LV2Worker (plugin_sem_lock, true);
+                if (!worker.valid) {
+                    worker = null;  // Discard if there is an error
+                } else {
+                    worker.handle = (LV2.Handle) this;
+                }
+            }
         }
 
         /**
@@ -380,20 +404,23 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             urid_map = LV2.URID.UridMap ();
             urid_map.map = lv2_manager.map_uri;
             urid_map_feature = register_feature (LV2.URID._map, &urid_map);
+            Console.log("Providing feature: %s".printf(LV2.URID._map));
             features[0] = &urid_map_feature;
 
             urid_unmap = LV2.URID.UridUnmap ();
             urid_unmap.unmap = lv2_manager.unmap_uri;
             urid_unmap_feature = register_feature (LV2.URID._unmap, &urid_unmap);
+            Console.log("Providing feature: %s".printf(LV2.URID._unmap));
             features[1] = &urid_unmap_feature;
 
-            //  if (worker != null) {
-            //      schedule = LV2.Worker.Schedule ();
-            //      schedule.schedule_work = worker.schedule;
-            //      scheduler_feature = register_feature (LV2.Worker._schedule, &schedule);
-            //      features.resize (features.length + 1);
-            //      features[features.length - 1] = &scheduler_feature;
-            //  }
+            if (worker != null) {
+                schedule = LV2.Worker.Schedule ();
+                schedule.schedule_work = worker.schedule;
+                scheduler_feature = register_feature (LV2.Worker._schedule, &schedule);
+                Console.log("Providing feature: %s".printf(LV2.Worker._schedule));
+                features.resize (features.length + 1);
+                features[features.length - 1] = &scheduler_feature;
+            }
         }
 
         private bool features_are_supported () {
@@ -480,15 +507,15 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                 );
             }
 
+            // Atom Ports
             var n_atom_in_ports = port_analyser.atom_in_port_list.length ();
-            // MIDI Ports
-            atom_midi_in_ports = new LV2AtomPort[port_analyser.n_atom_midi_in_ports];
+            atom_sequence_in_ports = new LV2AtomPort[port_analyser.n_atom_seq_in_ports];
 
             for (uint32 p = 0, i = 0; p < n_atom_in_ports; p++) {
                 unowned LV2AtomPort _port =
                     port_analyser.atom_in_port_list.nth_data (p);
-                if ((_port.flags & LV2AtomPort.Flags.SUPPORTS_MIDI_EVENT) > LV2AtomPort.Flags.NONE) {
-                    atom_midi_in_ports[i++] = new LV2AtomPort (
+                if ((_port.flags & LV2AtomPort.Flags.SEQUENCE) > LV2AtomPort.Flags.NONE) {
+                    atom_sequence_in_ports[i++] = new LV2AtomPort (
                         _port.name,
                         _port.index,
                         _port.properties,
@@ -498,6 +525,25 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                     );
                 }
             }
+
+            var n_atom_out_ports = port_analyser.atom_out_port_list.length ();
+            atom_sequence_out_ports = new LV2AtomPort[port_analyser.n_atom_seq_out_ports];
+
+            for (uint32 p = 0, i = 0; p < n_atom_out_ports; p++) {
+                unowned LV2AtomPort _port =
+                    port_analyser.atom_out_port_list.nth_data (p);
+                if ((_port.flags & LV2AtomPort.Flags.SEQUENCE) > LV2AtomPort.Flags.NONE) {
+                    atom_sequence_out_ports[i++] = new LV2AtomPort (
+                        _port.name,
+                        _port.index,
+                        _port.properties,
+                        _port.symbol,
+                        _port.turtle_token,
+                        _port.flags
+                    );
+                }
+            }
+
         }
     }
 }
