@@ -57,6 +57,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
      * that add more advanced functionality.
      */
     public class LV2Plugin : AudioPlugin {
+        private bool activated;
         public string plugin_uri { get; construct; }
         public string plugin_class { get; construct; }
 
@@ -113,6 +114,11 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                 author_homepage: lilv_plugin.get_author_homepage ().as_string (),
                 protocol: Protocol.LV2
             );
+        }
+
+        ~LV2Plugin () {
+            deactivate ();
+            worker = null;
         }
 
         construct {
@@ -238,14 +244,16 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         }
 
         protected override void activate () {
-            if (lv2_instance != null) {
+            if (lv2_instance != null && !activated) {
                 lv2_instance.activate ();
+                activated = true;
             }
         }
 
         protected override void deactivate () {
-            if (lv2_instance != null) {
+            if (lv2_instance != null && activated) {
                 lv2_instance.deactivate ();
+                activated = false;
             }
         }
 
@@ -365,17 +373,19 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         }
 
         public override void process (uint32 sample_count) {
-            fill_midi_event_buffers ();
+            if (active) {
+                fill_midi_event_buffers ();
 
-            if (lv2_instance != null) {
-                lv2_instance.run (sample_count);
+                if (lv2_instance != null) {
+                    lv2_instance.run (sample_count);
 
-                if (worker != null) {
-                    // Process any worker responses
-                    worker.emit_responses (lv2_instance.get_handle ());
+                    if (worker != null) {
+                        // Process any worker responses
+                        worker.emit_responses (lv2_instance.get_handle ());
 
-                    // Notify if plugin run is finished
-                    worker.end_run ();
+                        // Notify if plugin run is finished
+                        worker.end_run ();
+                    }
                 }
             }
         }

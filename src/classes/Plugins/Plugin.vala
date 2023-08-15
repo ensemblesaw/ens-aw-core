@@ -50,8 +50,6 @@ namespace Ensembles.ArrangerWorkstation.Plugins {
                     _active = value;
                     if (value) {
                         activate ();
-                    } else {
-                        deactivate ();
                     }
                 }
             }
@@ -63,6 +61,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins {
 
         ~Plugin () {
             active = false;
+            deactivate ();
         }
 
         /**

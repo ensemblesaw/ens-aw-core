@@ -64,10 +64,10 @@ namespace Ensembles.ArrangerWorkstation {
                     sf_path,
                     0.3
                 )
-                .add_rack (main_dsp_rack)
                 .add_rack (voice_l_rack)
                 .add_rack (voice_r1_rack)
-                .add_rack (voice_r2_rack);
+                .add_rack (voice_r2_rack)
+                .add_rack (main_dsp_rack);
 
                 synth_engine.on_midi_receive.connect ((event) => {
                     return on_midi_receive (event) ? Fluid.OK : Fluid.FAILED;
