@@ -523,6 +523,7 @@ namespace LV2.Worker {
     public struct ScheduleHandle {
     }
 
+    [CCode (instance_pos = 0)]
     public delegate Status SchedulerFunc (uint32 size, void* data);
 
     [CCode (cname = "LV2_Worker_Schedule", destroy_function = "")]

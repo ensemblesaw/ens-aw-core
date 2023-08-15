@@ -22,6 +22,8 @@ namespace Ensembles.ArrangerWorkstation.Racks {
         float[] aud_buf_dry_r;
         float[] aud_buf_mix_l;
         float[] aud_buf_mix_r;
+        float[] aud_buf_dry_mono;
+        float[] aud_buf_mix_mono;
 
         public signal void on_plugin_connect (int change_index);
 
@@ -120,11 +122,14 @@ namespace Ensembles.ArrangerWorkstation.Racks {
             // If the main buffers aren't initialised
             // initialize them
             if (aud_buf_dry_l == null || aud_buf_dry_r == null ||
-            aud_buf_mix_l == null || aud_buf_mix_r == null) {
+            aud_buf_mix_l == null || aud_buf_mix_r == null ||
+            aud_buf_dry_mono == null || aud_buf_mix_mono == null) {
                 aud_buf_dry_l = new float[len];
                 aud_buf_dry_r = new float[len];
                 aud_buf_mix_l = new float[len];
                 aud_buf_mix_r = new float[len];
+                aud_buf_dry_mono = new float[len << 1];
+                aud_buf_mix_mono = new float[len << 1];
             }
 
             // Fill main dry buffers with audio data
@@ -150,25 +155,61 @@ namespace Ensembles.ArrangerWorkstation.Racks {
                     foreach (AudioPlugin plugin in plugins) {
                         if (plugin.active) {
                             // Have the plugin process the audio buffer
-                            plugin.process (sample_count);
+                            if (plugin.stereo) {
+                                plugin.process (sample_count);
 
-                            // Copy wet audio to dry buffer as per mix amount
-                            for (uint32 j = 0; j < sample_count; j++) {
-                                aud_buf_dry_l[j] = Utils.Math.map_range_unclampedf (
-                                    plugin.mix_gain,
-                                    0,
-                                    1,
-                                    aud_buf_dry_l[j],
-                                    aud_buf_mix_l[j]
-                                );
+                                if (plugin.has_audio_in) {
+                                // Copy wet audio to dry buffer as per mix amount
+                                    for (uint32 j = 0; j < sample_count; j++) {
+                                        aud_buf_dry_l[j] = Utils.Math.map_range_unclampedf (
+                                            plugin.mix_gain,
+                                            0,
+                                            1,
+                                            aud_buf_dry_l[j],
+                                            aud_buf_mix_l[j]
+                                        );
 
-                                aud_buf_dry_r[j] = Utils.Math.map_range_unclampedf (
-                                    plugin.mix_gain,
-                                    0,
-                                    1,
-                                    aud_buf_dry_r[j],
-                                    aud_buf_mix_r[j]
-                                );
+                                        aud_buf_dry_r[j] = Utils.Math.map_range_unclampedf (
+                                            plugin.mix_gain,
+                                            0,
+                                            1,
+                                            aud_buf_dry_r[j],
+                                            aud_buf_mix_r[j]
+                                        );
+                                    }
+                                } else {
+                                    for (uint32 j = 0; j < sample_count; j++) {
+                                        aud_buf_dry_l[j] += plugin.mix_gain * aud_buf_mix_l[j];
+                                        aud_buf_dry_r[j] += plugin.mix_gain * aud_buf_mix_r[j];
+                                    }
+                                }
+                            } else {
+                                // Mix down to mono buffer first
+                                for (uint32 j = 0; j < sample_count; j++) {
+                                    aud_buf_dry_mono[j] = aud_buf_dry_l[j];
+                                    aud_buf_dry_mono[j + sample_count] = aud_buf_dry_r[j];
+                                }
+
+                                plugin.process (sample_count << 1);
+
+                                // Copy wet audio to dry buffer as per mix amount
+                                for (uint32 j = 0; j < sample_count; j++) {
+                                    aud_buf_dry_l[j] = Utils.Math.map_range_unclampedf (
+                                        plugin.mix_gain,
+                                        0,
+                                        1,
+                                        aud_buf_dry_mono[j],
+                                        aud_buf_mix_mono[j]
+                                    );
+
+                                    aud_buf_dry_r[j] = Utils.Math.map_range_unclampedf (
+                                        plugin.mix_gain,
+                                        0,
+                                        1,
+                                        aud_buf_dry_mono[j + sample_count],
+                                        aud_buf_mix_mono[j + sample_count]
+                                    );
+                                }
                             }
 
                             // Next plugin ready to run
@@ -185,8 +226,21 @@ namespace Ensembles.ArrangerWorkstation.Racks {
             active = false;
 
             foreach (AudioPlugin plugin in plugins) {
-                plugin.connect_source_buffer (aud_buf_dry_l, aud_buf_dry_r);
-                plugin.connect_sink_buffer (aud_buf_mix_l, aud_buf_mix_r);
+                if (plugin.has_audio_in) {
+                    if (plugin.stereo) {
+                        plugin.connect_source_buffer (aud_buf_dry_l, aud_buf_dry_r);
+                    } else {
+                        plugin.connect_source_buffer_mono (aud_buf_dry_mono);
+                    }
+                }
+
+                if (plugin.has_audio_out) {
+                    if (plugin.stereo) {
+                        plugin.connect_sink_buffer (aud_buf_mix_l, aud_buf_mix_r);
+                    } else {
+                        plugin.connect_sink_buffer_mono (aud_buf_mix_mono);
+                    }
+                }
             }
 
             active = was_active;

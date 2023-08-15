@@ -47,8 +47,6 @@ namespace Ensembles.ArrangerWorkstation.Racks {
         }
 
         public override void set_plugin_active (int position, bool active = true) {
-            base.set_plugin_active (position, active);
-
             if (active && exclusive_mode) {
                 uint n = plugins.length ();
                 for (uint i = 0; i < n; i++) {
@@ -57,6 +55,8 @@ namespace Ensembles.ArrangerWorkstation.Racks {
                     }
                 }
             }
+
+            base.set_plugin_active (position, active);
         }
     }
 }

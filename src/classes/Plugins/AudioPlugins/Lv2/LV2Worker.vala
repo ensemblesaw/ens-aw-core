@@ -34,28 +34,33 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         private Zix.Ring requests;                          ///< Requests to the worker
         private Zix.Ring responses;                         ///< Responses from the worker
         private void* response;                             ///< Worker response buffer
-        private unowned Zix.Sem plugin_lock;                ///< Lock for plugin work() method
+        private unowned Zix.Sem? plugin_lock;               ///< Lock for plugin work() method
         private bool queue_exit;                            ///< Exit flag
         private Zix.Sem sem;                                ///< Worker semaphore
         private Zix.Thread thread;                          ///< Worker thread
-        public Handle handle;                               ///< Plugin handle
+        private Handle handle;                              ///< Plugin handle
         private unowned Worker.Interface? iface;            ///< Plugin worker interface
-        public bool threaded { get; private set; }          ///< Run work in another thread
-        public bool valid { get; private set; }
+        private bool threaded;                              ///< Run work in another thread
+        public bool valid { get; private set; }             ///< If the worker instance is valid
 
         private const uint MAX_PACKET_SIZE = 4096U;
 
         public LV2Worker (Zix.Sem? plugin_lock, bool threaded) {
             this.threaded = threaded;
-            responses = new Zix.Ring (null, MAX_PACKET_SIZE);;
-            response = Posix.calloc (1, MAX_PACKET_SIZE);;
+            responses = new Zix.Ring (null, MAX_PACKET_SIZE);
+            response = Posix.calloc (1, MAX_PACKET_SIZE);
             this.plugin_lock = plugin_lock;
             queue_exit = false;
 
-            responses.mlock ();
+            if (response != null && responses != null) {
+                responses.mlock ();
 
-            if (threaded && launch () != SUCCESS) {
-                free (response);
+                if (!threaded || launch () == SUCCESS) {
+                    valid = true;
+                } else {
+                    valid = false;
+                }
+            } else {
                 valid = false;
             }
         }
@@ -103,6 +108,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
 
                     // Lock and dispatch request to plugin's work handler
                     plugin_lock.wait ();
+
                     iface.work (
                         handle,
                         respond,
@@ -144,7 +150,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
 
             _requests.mlock ();
             requests = (owned) _requests;
-            return st;
+            return Zix.Status.SUCCESS;
         }
 
         public void start (Worker.Interface iface, Handle handle) {
@@ -160,6 +166,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                 threaded = false;
             }
         }
+
 
         public Worker.Status schedule (uint32 size, void* data) {
             var st = Worker.Status.SUCCESS;

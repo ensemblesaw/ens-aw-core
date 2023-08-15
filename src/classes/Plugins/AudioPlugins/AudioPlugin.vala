@@ -47,6 +47,9 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins {
         protected Port[] audio_in_ports;
         protected Port[] audio_out_ports;
 
+        public bool has_audio_in { get; protected set; }
+        public bool has_audio_out { get; protected set; }
+
         /**
          * Whether the audio plugin can process stereo audio.
          */
@@ -58,7 +61,11 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins {
 
         public abstract void connect_source_buffer (void* in_l, void* in_r);
 
+        public abstract void connect_source_buffer_mono (void* in_m);
+
         public abstract void connect_sink_buffer (void* out_l, void* out_r);
+
+        public abstract void connect_sink_buffer_mono (void* out_m);
 
         public abstract int send_midi_event (Fluid.MIDIEvent midi_event);
 

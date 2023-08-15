@@ -78,8 +78,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         Zix.Sem plugin_sem_lock;
 
         // Plugin Instances ////////////////////////////////////////////////////
-        private Lilv.Instance lv2_instance_l; // Stereo audio / Mono L Processor
-        private Lilv.Instance lv2_instance_r; // Mono R Processor
+        private Lilv.Instance lv2_instance;
 
         // Ports ///////////////////////////////////////////////////////////////
         // Control ports
@@ -99,6 +98,9 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         public unowned Lilv.Plugin? lilv_plugin { get; construct; }
         public unowned LV2Manager? lv2_manager { get; construct; }
 
+        /**
+         * Creates an metadata instance of LV2 Plugin.
+         */
         public LV2Plugin (Lilv.Plugin? lilv_plugin, LV2Manager? manager) {
             Object (
                 lilv_plugin: lilv_plugin,
@@ -168,7 +170,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
          * or running the plugin.
          */
         public override void instantiate () throws PluginError {
-            if (lv2_instance_l == null) {
+            if (lv2_instance == null) {
                 Console.log("Instantiating LV2 Plugin %s, with URI: %s".printf(name, plugin_uri));
                 active = false;
                 setup_workers ();
@@ -180,10 +182,12 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
 
                 create_ports ();
 
-                lv2_instance_l = lilv_plugin.instantiate (AudioEngine.SynthEngine.sample_rate, features);
-                // Check if plugin is mono
-                if (!stereo) {
-                    lv2_instance_r = lilv_plugin.instantiate (AudioEngine.SynthEngine.sample_rate, features);
+                lv2_instance = lilv_plugin.instantiate (AudioEngine.SynthEngine.sample_rate, features);
+                if (worker != null) {
+                    worker.start ((LV2.Worker.Interface) lv2_instance.get_extension_data (
+                        LV2.Worker._interface),
+                        lv2_instance.get_handle ()
+                    );
                 }
 
                 allocate_control_ports ();
@@ -234,22 +238,14 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         }
 
         protected override void activate () {
-            if (lv2_instance_l != null) {
-                lv2_instance_l.activate ();
-            }
-
-            if (lv2_instance_r != null) {
-                lv2_instance_r.activate ();
+            if (lv2_instance != null) {
+                lv2_instance.activate ();
             }
         }
 
         protected override void deactivate () {
-            if (lv2_instance_l != null) {
-                lv2_instance_l.deactivate ();
-            }
-
-            if (lv2_instance_r != null) {
-                lv2_instance_r.deactivate ();
+            if (lv2_instance != null) {
+                lv2_instance.deactivate ();
             }
         }
 
@@ -258,27 +254,28 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                 // Stereo plugin
                 for (uint8 i = 0; i < audio_in_ports.length; i++) {
                     if ((i & 1) == 0) { // If even
-                        lv2_instance_l.connect_port (
+                        lv2_instance.connect_port (
                             audio_in_ports[i].index,
                             in_l
                         );
                     } else {
-                        lv2_instance_l.connect_port (
+                        lv2_instance.connect_port (
                             audio_in_ports[i].index,
                             in_r
                         );
                     }
                 }
-            } else {
-                lv2_instance_l.connect_port (
-                    audio_in_ports[0].index,
-                    in_l
-                );
+            }
+        }
 
-                lv2_instance_r.connect_port (
-                    audio_in_ports[0].index,
-                    in_r
-                );
+        public override void connect_source_buffer_mono (void* in_m) {
+            if (!stereo) {
+                for (uint8 i = 0; i < audio_in_ports.length; i++) {
+                    lv2_instance.connect_port (
+                        audio_in_ports[i].index,
+                        in_m
+                    );
+                }
             }
         }
 
@@ -286,37 +283,34 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             if (stereo) {
                 for (uint8 i = 0; i < audio_out_ports.length; i++) {
                     if ((i & 1) == 0) { // If even
-                        lv2_instance_l.connect_port (
+                        lv2_instance.connect_port (
                             audio_out_ports[i].index,
                             out_l
                         );
                     } else {
-                        lv2_instance_l.connect_port (
+                        lv2_instance.connect_port (
                             audio_out_ports[i].index,
                             out_r
                         );
                     }
                 }
-            } else {
-                lv2_instance_l.connect_port (
-                    audio_out_ports[0].index,
-                    out_l
-                );
+            }
+        }
 
-                lv2_instance_r.connect_port (
-                    audio_out_ports[0].index,
-                    out_r
-                );
+        public override void connect_sink_buffer_mono (void* out_m) {
+            if (!stereo) {
+                for (uint8 i = 0; i < audio_out_ports.length; i++) {
+                    lv2_instance.connect_port (
+                        audio_out_ports[i].index,
+                        out_m
+                    );
+                }
             }
         }
 
         public override void connect_port (Port port, void* data_pointer) {
-            if (lv2_instance_l != null) {
-                lv2_instance_l.connect_port (port.index, data_pointer);
-            }
-
-            if (lv2_instance_r != null) {
-                lv2_instance_r.connect_port (port.index, data_pointer);
+            if (lv2_instance != null) {
+                lv2_instance.connect_port (port.index, data_pointer);
             }
         }
 
@@ -340,7 +334,8 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
 
         private void fill_midi_event_buffers () {
             for (uint16 p = 0; p < atom_sequence_in_ports.length; p++) {
-                if (atom_sequence_in_ports[p].flags == LV2AtomPort.Flags.SUPPORTS_MIDI_EVENT) {
+                if ((atom_sequence_in_ports[p].flags & LV2AtomPort.Flags.SUPPORTS_MIDI_EVENT)
+                > LV2AtomPort.Flags.NONE) {
                     unowned LV2EvBuf evbuf = atom_sequence_in_variables[p];
                     evbuf.reset (true);
                     var iter = evbuf.begin ();
@@ -372,12 +367,16 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         public override void process (uint32 sample_count) {
             fill_midi_event_buffers ();
 
-            if (lv2_instance_l != null) {
-                lv2_instance_l.run (sample_count);
-            }
+            if (lv2_instance != null) {
+                lv2_instance.run (sample_count);
 
-            if (lv2_instance_r != null) {
-                lv2_instance_r.run (sample_count);
+                if (worker != null) {
+                    // Process any worker responses
+                    worker.emit_responses (lv2_instance.get_handle ());
+
+                    // Notify if plugin run is finished
+                    worker.end_run ();
+                }
             }
         }
 
@@ -389,11 +388,10 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                 worker = new LV2Worker (plugin_sem_lock, true);
                 if (!worker.valid) {
                     worker = null;  // Discard if there is an error
-                } else {
-                    worker.handle = (LV2.Handle) this;
                 }
             }
         }
+
 
         /**
          * Create plugin features
@@ -421,6 +419,9 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                 features.resize (features.length + 1);
                 features[features.length - 1] = &scheduler_feature;
             }
+
+            features.resize (features.length + 1);
+            features[features.length - 1] = null; // NULL terminate the array for compatibility
         }
 
         private bool features_are_supported () {
@@ -438,7 +439,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         }
 
         private bool feature_supported (string feature_uri) {
-            for (uint8 i = 0; i < features.length; i++) {
+            for (uint8 i = 0; features[i] != null; i++) {
                 if (feature_uri == features[i].URI) {
                     return true;
                 }
@@ -460,33 +461,40 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             var n_audio_in_ports = port_analyser.audio_in_port_list.length ();
             audio_in_ports = new Port[n_audio_in_ports];
 
-            // If there's more than one audio in port then presume that
-            // the plugin is stereo
-            stereo = n_audio_in_ports > 1;
-            for (uint32 p = 0; p < n_audio_in_ports; p++) {
-                unowned LV2Port _port =
-                    port_analyser.audio_in_port_list.nth_data (p);
-                audio_in_ports[p] = new LV2Port (
-                    _port.name,
-                    _port.index,
-                    _port.properties,
-                    _port.symbol,
-                    _port.turtle_token
-                );
+            if (n_audio_in_ports > 0) {
+                has_audio_in = true;
+                for (uint32 p = 0; p < n_audio_in_ports; p++) {
+                    unowned LV2Port _port =
+                        port_analyser.audio_in_port_list.nth_data (p);
+                    audio_in_ports[p] = new LV2Port (
+                        _port.name,
+                        _port.index,
+                        _port.properties,
+                        _port.symbol,
+                        _port.turtle_token
+                    );
+                }
             }
 
             var n_audio_out_ports = port_analyser.audio_out_port_list.length ();
             audio_out_ports = new Port[n_audio_out_ports];
-            for (uint32 p = 0; p < n_audio_out_ports; p++) {
-                unowned LV2Port _port =
-                    port_analyser.audio_out_port_list.nth_data (p);
-                audio_out_ports[p] = new LV2Port (
-                    _port.name,
-                    _port.index,
-                    _port.properties,
-                    _port.symbol,
-                    _port.turtle_token
-                );
+
+            if (n_audio_out_ports > 0) {
+                has_audio_out = true;
+                // If there's more than one audio in port then presume that
+                // the plugin is stereo
+                stereo = n_audio_out_ports > 1;
+                for (uint32 p = 0; p < n_audio_out_ports; p++) {
+                    unowned LV2Port _port =
+                        port_analyser.audio_out_port_list.nth_data (p);
+                    audio_out_ports[p] = new LV2Port (
+                        _port.name,
+                        _port.index,
+                        _port.properties,
+                        _port.symbol,
+                        _port.turtle_token
+                    );
+                }
             }
 
             var n_control_in_ports = port_analyser.control_in_port_list.length ();
