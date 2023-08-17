@@ -12,12 +12,18 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             SUPPORTS_MIDI_EVENT
         }
 
-        public Flags flags { get; private set; }
+        public Flags flags { get; construct; }
 
         public LV2AtomPort (string name, uint32 index, owned string[] properties,
         string symbol, string turtle_token = "", Flags flags) {
-            base (name, index, properties, symbol, turtle_token);
-            this.flags = flags;
+            Object (
+                name: name,
+                index: index,
+                properties: properties,
+                symbol: symbol,
+                turtle_token: turtle_token,
+                flags: flags
+            );
         }
     }
 }

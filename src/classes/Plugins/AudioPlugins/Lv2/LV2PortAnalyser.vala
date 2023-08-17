@@ -111,11 +111,12 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             for (uint32 i = 0; i < n_ports; i++) {
                 // Get port from plugin
                 unowned Lilv.Port port = lilv_plugin.get_port_by_index (i);
+                unowned Lilv.Node port_node = port.get_node (lilv_plugin);
 
-                var name = lilv_plugin.port_get_name (port).as_string ();
+                var name = port.get_name (lilv_plugin).as_string ();
                 print ("port: " + name + "\n");
-                var symbol = lilv_plugin.port_get_symbol (port).as_string ();
-                var turtle_token = lilv_plugin.port_get_symbol (port).get_turtle_token ();
+                var symbol = port.get_symbol (lilv_plugin).as_string ();
+                var turtle_token = port.get_symbol (lilv_plugin).get_turtle_token ();
                 var properties = get_port_properties (port);
 
                 // Plugin class flags
@@ -126,7 +127,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                 bool is_atom_port = false;
 
                 // Get all classes associated with this port
-                unowned Lilv.Nodes port_classes = lilv_plugin.port_get_classes (port);
+                unowned Lilv.Nodes port_classes = port.get_classes (lilv_plugin);
 
                 for (var class_iter = port_classes.begin ();
                 !port_classes.is_end (class_iter);
@@ -173,7 +174,30 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                     Lilv.Node min_value;
                     Lilv.Node max_value;
 
-                    lilv_plugin.port_get_range (port, out default_value, out min_value, out max_value);
+                    port.get_range (lilv_plugin, out default_value, out min_value, out max_value);
+
+                    var units = LV2Manager.world.find_nodes (
+                        port_node,
+                        LV2Manager.get_node_by_uri (LV2.Units._unit),
+                        null
+                    );
+
+                    var unit = "";
+                    if (units.contains (LV2Manager.get_node_by_uri (LV2.Units._db))) {
+                        unit = "DB";
+                    } else if (units.contains (LV2Manager.get_node_by_uri (LV2.Units._degree))) {
+                        unit = "°";
+                    } else if (units.contains (LV2Manager.get_node_by_uri (LV2.Units._s))) {
+                        unit = "s";
+                    } else if (units.contains (LV2Manager.get_node_by_uri (LV2.Units._ms))) {
+                        unit = "ms";
+                    } else if (units.contains (LV2Manager.get_node_by_uri (LV2.Units._hz))) {
+                        unit = "Hz";
+                    } else if (units.contains (LV2Manager.get_node_by_uri (LV2.Units._khz))) {
+                        unit = "KHz";
+                    } else if (units.contains (LV2Manager.get_node_by_uri (LV2.Units._mhz))) {
+                        unit = "MHz";
+                    }
 
                     if (is_input_port) {
                         control_in_port_list.append (new LV2ControlPort (
@@ -185,18 +209,19 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                             min_value.as_float (),
                             max_value.as_float (),
                             default_value.as_float (),
-                            0.1f
+                            0.1f,
+                            unit
                         ));
                     }
                 } else if (is_atom_port) {
                     var flags = LV2AtomPort.Flags.NONE;
-                    Lilv.Nodes buffer_types = lilv_plugin.port_get_value (
-                        port,
+                    Lilv.Nodes buffer_types = port.get_value (
+                        lilv_plugin,
                         LV2Manager.get_node_by_uri (LV2.Atom._bufferType)
                     );
 
-                    Lilv.Nodes atom_supports = lilv_plugin.port_get_value (
-                        port,
+                    Lilv.Nodes atom_supports = port.get_value (
+                        lilv_plugin,
                         LV2Manager.get_node_by_uri (LV2.Atom._supports)
                     );
 
@@ -273,7 +298,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         private string[] get_port_properties (Lilv.Port port) {
             var prop_list = new List<string> ();
 
-            var properties = lilv_plugin.port_get_properties (port);
+            var properties = port.get_properties (lilv_plugin);
 
             for (var props_iter = properties.begin ();
             !properties.is_end (props_iter);

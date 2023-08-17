@@ -5,15 +5,18 @@
 
 namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
     public class LV2Port : Port {
-        public string[] properties { get; private set; }
-        public string symbol { get; private set; }
-        public string turtle_token { get; private set; }
+        public string[] properties { get; construct; }
+        public string symbol { get; construct; }
+        public string turtle_token { get; construct; }
 
         public LV2Port (string name, uint32 index, owned string[] properties,
             string symbol, string turtle_token = "") {
-            base (name, index);
-            this.symbol = symbol;
-            this.turtle_token = turtle_token;
+            Object (
+                name: name,
+                index: index,
+                symbol: symbol,
+                turtle_token: turtle_token
+            );
         }
     }
 }

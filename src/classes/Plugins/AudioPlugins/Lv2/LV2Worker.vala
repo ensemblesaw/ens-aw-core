@@ -116,7 +116,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                     iface.work (
                         handle,
                         respond,
-                        (LV2.Worker.RespondHandle) this,
+                        (Worker.RespondHandle) this,
                         size, buf
                     );
                     plugin_lock.post ();
@@ -190,7 +190,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                 st = iface.work (
                     handle,
                     respond,
-                    (LV2.Worker.RespondHandle) this,
+                    (Worker.RespondHandle) this,
                     size,
                     data
                 );

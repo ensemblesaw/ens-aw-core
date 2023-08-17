@@ -5,12 +5,14 @@
 
 namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins {
     public class Port : Object {
-        public string name { get; private set; }
-        public uint32 index { get; private set; }
+        public string name { get; construct; }
+        public uint32 index { get; construct; }
 
         public Port (string name, uint32 index) {
-            this.name = name;
-            this.index = index;
+            Object (
+                name: name,
+                index: index
+            );
         }
     }
 }

@@ -142,7 +142,7 @@ namespace LV2 {
 /**
  * User interfaces of any type for plugins.
  * See <http://lv2plug.in/ns/extensions/ui> for details.
-*/
+ */
 [CCode (cheader_filename = "lv2/lv2plug.in/ns/extensions/ui/ui.h")]
 namespace LV2.UI {
     public const string URI;
@@ -534,4 +534,45 @@ namespace LV2.Worker {
         public unowned SchedulerFunc schedule_work;
     }
 
+}
+
+
+[CCode(cheader_filename="lv2/units/units.h")]
+namespace LV2.Units {
+    public const string URI;
+
+    public const string PREFIX;
+
+    public const string _Conversion;
+    public const string _Unit;
+    public const string _bar;
+    public const string _beat;
+    public const string _bpm;
+    public const string _cent;
+    public const string _cm;
+    public const string _coef;
+    public const string _conversion;
+    public const string _db;
+    public const string _degree;
+    public const string _frame;
+    public const string _hz;
+    public const string _inch;
+    public const string _khz;
+    public const string _km;
+    public const string _m;
+    public const string _mhz;
+    public const string _midiNote;
+    public const string _mile;
+    public const string _min;
+    public const string _mm;
+    public const string _ms;
+    public const string _name;
+    public const string _oct;
+    public const string _pc;
+    public const string _prefixConversion;
+    public const string _render;
+    public const string _s;
+    public const string _semitone12TET;
+    public const string _symbol;
+    public const string _unit;
 }

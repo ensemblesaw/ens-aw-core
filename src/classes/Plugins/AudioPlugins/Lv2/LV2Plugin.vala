@@ -47,6 +47,8 @@
  * ---
  */
 
+using LV2;
+
 namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
     /**
      * An LV2 Plugin that can be used for DSP or as voices, expanding
@@ -62,17 +64,17 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         public string plugin_class { get; construct; }
 
         // LV2 Features ////////////////////////////////////////////////////////
-        private LV2.Feature*[] features;
+        private Feature*[] features;
 
-        LV2.Feature urid_map_feature;
-        LV2.Feature urid_unmap_feature;
-        LV2.Feature scheduler_feature;
-        //  LV2.Feature options_feature;
+        Feature urid_map_feature;
+        Feature urid_unmap_feature;
+        Feature scheduler_feature;
+        //  Feature options_feature;
 
         // Feature Maps
-        LV2.URID.UridMap urid_map;
-        LV2.URID.UridUnmap urid_unmap;
-        LV2.Worker.Schedule schedule;
+        URID.UridMap urid_map;
+        URID.UridUnmap urid_unmap;
+        Worker.Schedule schedule;
 
         // Plugin Worker Thread
         LV2Worker worker;
@@ -84,7 +86,6 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         // Ports ///////////////////////////////////////////////////////////////
         // Control ports
         public LV2ControlPort[] control_in_ports;
-        public float[] control_in_variables;
 
         // Atom ports
         // Sequence
@@ -190,8 +191,8 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
 
                 lv2_instance = lilv_plugin.instantiate (AudioEngine.SynthEngine.sample_rate, features);
                 if (worker != null) {
-                    worker.start ((LV2.Worker.Interface) lv2_instance.get_extension_data (
-                        LV2.Worker._interface),
+                    worker.start ((Worker.Interface) lv2_instance.get_extension_data (
+                        Worker._interface),
                         lv2_instance.get_handle ()
                     );
                 }
@@ -202,10 +203,8 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         }
 
         private void allocate_control_ports () {
-            control_in_variables = new float[control_in_ports.length];
             for (uint32 i = 0; i < control_in_ports.length; i++) {
-                control_in_variables[i] = control_in_ports[i].default_value;
-                connect_port (control_in_ports[i], &control_in_variables[i]);
+                connect_port (control_in_ports[i], &control_in_ports[i].value);
             }
         }
 
@@ -215,8 +214,8 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             for (uint16 i = 0; i < atom_sequence_in_ports.length; i++) {
                 atom_sequence_in_variables[i] = new LV2EvBuf (
                     AudioEngine.SynthEngine.buffer_size,
-                    lv2_manager.map_uri (LV2.Atom._Chunk),
-                    lv2_manager.map_uri (LV2.Atom._Sequence)
+                    lv2_manager.map_uri (Atom._Chunk),
+                    lv2_manager.map_uri (Atom._Sequence)
                 );
 
                 atom_sequence_in_variables[i].reset (true);
@@ -229,8 +228,8 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             for (uint16 i = 0; i < atom_sequence_out_ports.length; i++) {
                 atom_sequence_out_variables[i] = new LV2EvBuf (
                     AudioEngine.SynthEngine.buffer_size,
-                    lv2_manager.map_uri (LV2.Atom._Chunk),
-                    lv2_manager.map_uri (LV2.Atom._Sequence)
+                    lv2_manager.map_uri (Atom._Chunk),
+                    lv2_manager.map_uri (Atom._Sequence)
                 );
 
                 atom_sequence_out_variables[i].reset (true);
@@ -361,7 +360,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                                 new DateTime.now_utc ().to_unix () - AudioEngine.SynthEngine.processing_start_time
                             ),
                             0,
-                            (uint32) lv2_manager.map_uri (LV2.MIDI._MidiEvent),
+                            (uint32) lv2_manager.map_uri (MIDI._MidiEvent),
                             3,
                             buffer
                         );
@@ -394,7 +393,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             Zix.Sem.init (out plugin_sem_lock, 1);
 
             // Create workers if necessary
-            if (lilv_plugin.has_extension_data (LV2Manager.get_node_by_uri (LV2.Worker._interface))) {
+            if (lilv_plugin.has_extension_data (LV2Manager.get_node_by_uri (Worker._interface))) {
                 worker = new LV2Worker (plugin_sem_lock, true);
                 if (!worker.valid) {
                     worker = null;  // Discard if there is an error
@@ -407,25 +406,25 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
          * Create plugin features
          */
         private void create_features () {
-            features = new LV2.Feature* [2];
+            features = new Feature* [2];
 
-            urid_map = LV2.URID.UridMap ();
+            urid_map = URID.UridMap ();
             urid_map.map = lv2_manager.map_uri;
-            urid_map_feature = register_feature (LV2.URID._map, &urid_map);
-            Console.log("Providing feature: %s".printf(LV2.URID._map));
+            urid_map_feature = register_feature (URID._map, &urid_map);
+            Console.log("Providing feature: %s".printf(URID._map));
             features[0] = &urid_map_feature;
 
-            urid_unmap = LV2.URID.UridUnmap ();
+            urid_unmap = URID.UridUnmap ();
             urid_unmap.unmap = lv2_manager.unmap_uri;
-            urid_unmap_feature = register_feature (LV2.URID._unmap, &urid_unmap);
-            Console.log("Providing feature: %s".printf(LV2.URID._unmap));
+            urid_unmap_feature = register_feature (URID._unmap, &urid_unmap);
+            Console.log("Providing feature: %s".printf(URID._unmap));
             features[1] = &urid_unmap_feature;
 
             if (worker != null) {
-                schedule = LV2.Worker.Schedule ();
+                schedule = Worker.Schedule ();
                 schedule.schedule_work = worker.schedule;
-                scheduler_feature = register_feature (LV2.Worker._schedule, &schedule);
-                Console.log("Providing feature: %s".printf(LV2.Worker._schedule));
+                scheduler_feature = register_feature (Worker._schedule, &schedule);
+                Console.log("Providing feature: %s".printf(Worker._schedule));
                 features.resize (features.length + 1);
                 features[features.length - 1] = &scheduler_feature;
             }
@@ -458,8 +457,8 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             return false;
         }
 
-        private LV2.Feature register_feature (string uri, void* data) {
-            return LV2.Feature () {
+        private Feature register_feature (string uri, void* data) {
+            return Feature () {
                 URI = uri,
                 data = data
             };
@@ -521,7 +520,8 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                     _port.min_value,
                     _port.max_value,
                     _port.default_value,
-                    _port.step
+                    _port.step,
+                    _port.unit
                 );
             }
 
