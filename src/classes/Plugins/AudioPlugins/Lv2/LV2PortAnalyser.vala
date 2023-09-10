@@ -199,6 +199,8 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                         unit = "MHz";
                     }
 
+                    var stops = get_scale_points (port);
+
                     if (is_input_port) {
                         control_in_port_list.append (new LV2ControlPort (
                             name,
@@ -210,7 +212,8 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                             max_value.as_float (),
                             default_value.as_float (),
                             0.1f,
-                            unit
+                            unit,
+                            stops
                         ));
                     }
                 } else if (is_atom_port) {
@@ -315,6 +318,29 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                 props[i] = prop_list.nth_data (i) + ""; // Make owned
             }
             return props;
+        }
+
+        private float[] get_scale_points (Lilv.Port port) {
+            var scale_points = port.get_scale_points (lilv_plugin);
+
+            if (scale_points != null) {
+                var scale_point_array = new float[scale_points.size ()];
+                var i = 0;
+
+                for (
+                    var iter = scale_points.begin ();
+                    !scale_points.is_end (iter);
+                    iter = scale_points.next (iter)
+                ) {
+                    unowned Lilv.ScalePoint sp = scale_points.get (iter);
+
+                    scale_point_array[i++] = sp.get_value ().as_float ();
+                }
+
+                return scale_point_array.copy ();
+            }
+
+            return new float[0];
         }
     }
 }

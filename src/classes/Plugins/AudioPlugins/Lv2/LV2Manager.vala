@@ -43,6 +43,10 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             }
         );
 
+        internal static LV2Options options = new LV2Options ();
+        internal static LV2URIDs urids = new LV2URIDs ();
+        internal static LV2Nodes nodes = new LV2Nodes (world);
+
         private IAWCore i_aw_core;
 
         public void load_plugins (IAWCore i_aw_core, PluginManager plugin_manager) {
@@ -55,22 +59,16 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
 
             var plugins = world.get_all_plugins ();
 
+            options.sample_rate = (float) AudioEngine.SynthEngine.sample_rate;
+
             for (var iter = plugins.begin (); !plugins.is_end (iter); iter = plugins.next (iter)) {
                 var lilv_plugin = plugins.get (iter);
 
                 if (lilv_plugin != null) {
-                    try {
-                        var plugin = new LV2Plugin (lilv_plugin, this);
-                        plugin_manager.audio_plugins.append (plugin);
+                    var plugin = new LV2Plugin (lilv_plugin, this);
+                    plugin_manager.audio_plugins.append (plugin);
 
-                        i_aw_core.send_loading_status (_("Loading LV2 plugin: ") + plugin.name + "…");
-                    } catch (PluginError e) {
-                        Console.log (
-                            "Skipped LV2 plugin: " +
-                                lilv_plugin.get_uri ().as_uri (),
-                            Console.LogLevel.WARNING
-                        );
-                    }
+                    i_aw_core.send_loading_status (_("Loading LV2 plugin: ") + plugin.name + "…");
 
                     Thread.usleep (20000);
                 }

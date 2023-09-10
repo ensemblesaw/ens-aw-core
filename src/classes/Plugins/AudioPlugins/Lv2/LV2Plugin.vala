@@ -53,7 +53,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
     /**
      * An LV2 Plugin that can be used for DSP or as voices, expanding
      * the standard set of sampled voices that Ensembles come with.
-     *
+     * ---
      * LV2 is an extensible open standard for audio plugins.
      * LV2 has a simple core interface, which is accompanied by extensions
      * that add more advanced functionality.
@@ -69,12 +69,14 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         Feature urid_map_feature;
         Feature urid_unmap_feature;
         Feature scheduler_feature;
-        //  Feature options_feature;
+        Feature options_feature;
 
         // Feature Maps
         URID.UridMap urid_map;
         URID.UridUnmap urid_unmap;
         Worker.Schedule schedule;
+        Options.Option[] options;
+        Options.Interface options_iface;
 
         // Plugin Worker Thread
         LV2Worker worker;
@@ -181,11 +183,20 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                 Console.log("Instantiating LV2 Plugin %s, with URI: %s".printf(name, plugin_uri));
                 active = false;
                 setup_workers ();
+                init_options ();
                 create_features ();
 
-                if (!features_are_supported ()) {
+                if (!features_are_supported (true)) {
                     throw new PluginError.UNSUPPORTED_FEATURE ("Feature not supported");
                 }
+
+                features_are_supported ();
+
+                if (!options_are_supported (true)) {
+                    throw new PluginError.UNSUPPORTED_OPTION ("Option not supported");
+                }
+
+                options_are_supported ();
 
                 create_ports ();
 
@@ -429,25 +440,154 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                 features[features.length - 1] = &scheduler_feature;
             }
 
+            options_feature = register_feature (Options._options, options);
+            Console.log("Providing feature: %s".printf(Options._options));
+            features.resize (features.length + 1);
+            features[features.length - 1] = &options_feature;
+
             features.resize (features.length + 1);
             features[features.length - 1] = null; // NULL terminate the array for compatibility
         }
 
-        private bool features_are_supported () {
-            var lilv_features = lilv_plugin.get_required_features ();
-            for (var iter = lilv_features.begin (); !lilv_features.is_end (iter);
-            iter = lilv_features.next (iter)) {
-                string required_feature = lilv_features.get (iter).as_uri ();
-                print ("checking: %s\n", required_feature);
-                if (!feature_supported (required_feature)) {
-                    return false;
+        private void init_options () {
+            options = {
+                Options.Option () {
+                    context = INSTANCE,
+                    subject = 0,
+                    key = LV2Manager.urids.param_sample_rate,
+                    size = (uint32) sizeof(float),
+                    type = LV2Manager.urids.atom_float,
+                    value = &LV2Manager.options.sample_rate
+                },
+                Options.Option () {
+                    context = INSTANCE,
+                    subject = 0,
+                    key = LV2Manager.urids.bufsz_min_block_length,
+                    size = (uint32) sizeof(int32),
+                    type = LV2Manager.urids.atom_int,
+                    value = &LV2Manager.options.block_length
+                },
+                Options.Option () {
+                    context = INSTANCE,
+                    subject = 0,
+                    key = LV2Manager.urids.bufsz_max_block_length,
+                    size = (uint32) sizeof(int32),
+                    type = LV2Manager.urids.atom_int,
+                    value = &LV2Manager.options.block_length
+                },
+                Options.Option () {
+                    context = INSTANCE,
+                    subject = 0,
+                    key = LV2Manager.urids.bufsz_sequence_size,
+                    size = (uint32) sizeof(int32),
+                    type = LV2Manager.urids.atom_int,
+                    value = &LV2Manager.options.midi_buffer_size
+                },
+                //  Options.Option () {
+                //      context = INSTANCE,
+                //      subject = 0,
+                //      key = LV2Manager.urids.ui_update_rate,
+                //      size = (uint32) sizeof(float),
+                //      type = LV2Manager.urids.atom_float,
+                //      value = &LV2Manager.options.ui_update_rate
+                //  },
+                //  Options.Option () {
+                //      context = INSTANCE,
+                //      subject = 0,
+                //      key = LV2Manager.urids.ui_scale_factor,
+                //      size = (uint32) sizeof(float),
+                //      type = LV2Manager.urids.atom_float,
+                //      value = &LV2Manager.options.ui_scale_factor
+                //  },
+                Options.Option () {
+                    context = INSTANCE,
+                    subject = 0,
+                    key = 0,
+                    size = 0,
+                    type = 0,
+                    value = null
+                }
+            };
+        }
+
+        private bool options_are_supported (bool required = false) {
+            Lilv.Nodes options = null;
+            if (required) {
+                options = LV2Manager.world.find_nodes (
+                    lilv_plugin.get_uri (),
+                    LV2Manager.get_node_by_uri (Options._requiredOption),
+                    null);
+            } else {
+                options = LV2Manager.world.find_nodes (
+                    lilv_plugin.get_uri (),
+                    LV2Manager.get_node_by_uri (Options._supportedOption),
+                    null);
+            }
+
+            if (options != null) {
+                for (var iter = options.begin (); !options.is_end (iter);
+                iter = options.next (iter)) {
+                    string option = options.get (iter).as_uri ();
+                    if (!option_supported (option)) {
+                        if (required) {
+                            Console.log ("Required option %s not supported".printf (option),
+                            Console.LogLevel.WARNING);
+                            return false;
+                        }
+
+                        Console.log ("Optional option %s not supported".printf (option));
+                    }
                 }
             }
 
             return true;
         }
 
+        private bool features_are_supported (bool required = false) {
+            Lilv.Nodes lilv_features = null;
+            if (required) {
+                lilv_features = lilv_plugin.get_required_features ();
+            } else {
+                lilv_features = lilv_plugin.get_optional_features ();
+            }
+
+            assert_nonnull (lilv_features);
+
+            for (var iter = lilv_features.begin (); !lilv_features.is_end (iter);
+            iter = lilv_features.next (iter)) {
+                string feature = lilv_features.get (iter).as_uri ();
+                if (!feature_supported (feature)) {
+                    if (required) {
+                        Console.log ("Required feature %s not supported".printf (feature),
+                            Console.LogLevel.WARNING);
+                        return false;
+                    }
+
+                    Console.log ("Optional feature %s not supported".printf (feature));
+                }
+            }
+
+            return true;
+        }
+
+        /**
+         * Whether Ensembles supports the given option.
+         */
+        private bool option_supported (string option_uri) {
+            for (uint8 i = 0; i < options.length; i++) {
+                if (lv2_manager.map_uri (option_uri) == options[i].key) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /**
+         * Whether Ensembles supports the given feature.
+         */
         private bool feature_supported (string feature_uri) {
+            // NULL terminated array
             for (uint8 i = 0; features[i] != null; i++) {
                 if (feature_uri == features[i].URI) {
                     return true;

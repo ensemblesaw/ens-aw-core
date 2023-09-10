@@ -66,7 +66,10 @@ classes = files (
     'classes/Plugins/AudioPlugins/Lv2/LV2SyMap.vala',
     'classes/Plugins/AudioPlugins/Lv2/LV2EvBuf.vala',
     'classes/Plugins/AudioPlugins/Lv2/LV2Worker.vala',
+    'classes/Plugins/AudioPlugins/Lv2/LV2Options.vala',
     'classes/Plugins/AudioPlugins/Lv2/LV2PortAnalyser.vala',
+    'classes/Plugins/AudioPlugins/Lv2/LV2URIDs.vala',
+    'classes/Plugins/AudioPlugins/Lv2/LV2Nodes.vala',
     'classes/Plugins/AudioPlugins/Lv2/Ports/LV2Port.vala',
     'classes/Plugins/AudioPlugins/Lv2/Ports/LV2ControlPort.vala',
     'classes/Plugins/AudioPlugins/Lv2/Ports/LV2AtomPort.vala'

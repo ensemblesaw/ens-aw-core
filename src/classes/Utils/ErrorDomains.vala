@@ -15,6 +15,7 @@ namespace Ensembles.ArrangerWorkstation {
 
     protected errordomain PluginError {
         UNSUPPORTED_FEATURE,
+        UNSUPPORTED_OPTION,
         INVALID_CATEGORY
     }
 }
