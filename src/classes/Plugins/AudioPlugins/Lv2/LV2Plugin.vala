@@ -70,6 +70,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         Feature urid_unmap_feature;
         Feature scheduler_feature;
         Feature options_feature;
+        Feature log_feature;
 
         // Feature Maps
         URID.UridMap urid_map;
@@ -77,6 +78,10 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         Worker.Schedule schedule;
         Options.Option[] options;
         Options.Interface options_iface;
+        LV2.Log.Log llog;
+
+        // Log
+        LV2Log log;
 
         // Plugin Worker Thread
         LV2Worker worker;
@@ -444,6 +449,17 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
             Console.log("Providing feature: %s".printf(Options._options));
             features.resize (features.length + 1);
             features[features.length - 1] = &options_feature;
+
+            this.log = new LV2Log ();
+            llog = LV2.Log.Log ();
+            llog.handle = (LV2.Log.LogHandle) log;
+            llog.vprintf = log.vprintf;
+            llog.printf = (LV2LogPrintFunc) log.printf; // Some bug here
+
+            log_feature = register_feature (LV2.Log._log, &llog);
+            Console.log("Providing feature: %s".printf(LV2.Log._log));
+            features.resize (features.length + 1);
+            features[features.length - 1] = &log_feature;
 
             features.resize (features.length + 1);
             features[features.length - 1] = null; // NULL terminate the array for compatibility

@@ -73,7 +73,7 @@ namespace Ensembles.ArrangerWorkstation {
                     return on_midi_receive (event) ? Fluid.OK : Fluid.FAILED;
                 });
 
-                midi_driver = new MIDIInputHost (synth_engine, false);
+                midi_driver = new MIDIInputHost (synth_engine, true);
 
             } catch (FluidError e) {
                 Console.log (e.message, Console.LogLevel.ERROR);

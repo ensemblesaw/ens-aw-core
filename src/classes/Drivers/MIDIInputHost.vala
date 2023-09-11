@@ -43,6 +43,10 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
         construct {
             midi_driver_settings = new Fluid.Settings ();
             midi_driver_settings.setstr ("midi.portname", "Ensembles AW 300");
+
+            if (mapped_input) {
+                midi_driver_settings.setint ("midi.autoconnect", 1);
+            }
         }
 
         protected int handle_mapped_event (Fluid.MIDIEvent midi_event) {

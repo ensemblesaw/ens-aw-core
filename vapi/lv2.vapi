@@ -766,20 +766,19 @@ namespace LV2.Log {
     public struct LogHandle {
     }
 
-    [CCode (cname = "lv2_log_print_func_t", has_target = false)]
-    public delegate int PrintFunc (LogHandle handle, URID.Urid type, string fmt, ...);
+    [CCode (instance_pos = 0)]
+    public delegate int PrintFunc (URID.Urid type, string fmt, ...);
 
-    [CCode (cname = "lv2_log_vprint_func_t", has_target = false)]
-    public delegate int VPrintFunc (LogHandle handle, URID.Urid type, string fmt, va_list ap);
+    [CCode (instance_pos = 0)]
+    public delegate int VPrintFunc (URID.Urid type, string fmt, va_list ap);
 
-    [Compact]
-    [SimpleType]
-    [CCode (cname = "LV2_Log_Log", has_type_id = false, free_function = "")]
-    public class Log {
-        LogHandle handle;
-        [CCode (cname = "printf", has_target = false, delegate_target_cname = "", simple_generics = true)]
+    [CCode (cname = "LV2_Log_Log", destroy_function = "")]
+    public struct Log {
+        [CCode (cname = "handle")]
+        public LogHandle handle;
+        [CCode (cname = "printf", has_target = false, delegate_target_cname = "handle")]
         public unowned PrintFunc printf;
-        [CCode (cname = "vprintf", has_target = false, delegate_target_cname = "", simple_generics = true)]
+        [CCode (cname = "vprintf", has_target = false, delegate_target_cname = "handle")]
         public unowned VPrintFunc vprintf;
     }
 }
