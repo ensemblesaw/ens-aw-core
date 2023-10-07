@@ -85,13 +85,20 @@ namespace Ensembles.ArrangerWorkstation {
                                 event.key,
                                 event.event_type == MIDIEvent.EventType.NOTE_ON
                             );
-                            synth_engine.send_chord_ambiance (event);
-                            synth_engine.send_chord_bass (event, chord);
+
                             if (event.event_type == MIDIEvent.EventType.NOTE_ON) {
                                 chord_changed (chord);
                                 if (style_engine != null) {
                                     style_engine.change_chord (chord);
+
+                                    if (!style_engine.playing) {
+                                        synth_engine.send_chord_ambiance (event);
+                                        synth_engine.send_chord_bass (event, chord);
+                                    }
                                 }
+                            } else {
+                                synth_engine.send_chord_ambiance (event);
+                                synth_engine.send_chord_bass (event, chord);
                             }
                         }
                     }
@@ -99,7 +106,7 @@ namespace Ensembles.ArrangerWorkstation {
                     return on_midi_receive (event) ? Fluid.OK : Fluid.FAILED;
                 });
 
-                synth_engine.split_point = 48;
+                synth_engine.split_point = 60;
                 synth_engine.chords_on = true;
 
                 midi_driver = new MIDIInputHost (synth_engine, false);
@@ -276,6 +283,10 @@ namespace Ensembles.ArrangerWorkstation {
             synth_engine.set_voice (hand_position, bank, preset);
         }
 
+        public uint8 get_velocity (uint8 channel) {
+            return synth_engine.get_velocity (channel);
+        }
+
 
         // STYLE ENGINE ////////////////////////////////////////////////////////
         public void style_engine_queue_style (Models.Style style) {
@@ -350,6 +361,14 @@ namespace Ensembles.ArrangerWorkstation {
             if (style_engine != null) {
                 style_engine.break_play ();
             }
+        }
+
+        public bool style_engine_is_playing () {
+            if(style_engine != null) {
+                return style_engine.playing;
+            }
+
+            return false;
         }
 
 

@@ -75,7 +75,6 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
         public abstract bool chords_on { get; set; }
 
 
-
         // Signals /////////////////////////////////////////////////////////////
         // MIDI Output
         public signal int on_midi_receive (Models.MIDIEvent event);
@@ -107,5 +106,6 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
 
         // Misccellaneuous
         public abstract void play_intro_sound ();
+        public abstract uint8 get_velocity(uint8 channel);
     }
 }

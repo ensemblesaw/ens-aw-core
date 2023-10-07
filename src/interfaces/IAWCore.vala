@@ -99,6 +99,7 @@ namespace Ensembles.ArrangerWorkstation {
         public abstract bool send_midi (MIDIEvent event);
         public abstract void set_voice (VoiceHandPosition hand_position, uint8 bank, uint8 preset);
         public abstract void set_split_point (uint8 split_point);
+        public abstract uint8 get_velocity (uint8 channel);
 
         // STYLE ENGINE ////////////////////////////////////////////////////////
 
@@ -121,6 +122,7 @@ namespace Ensembles.ArrangerWorkstation {
         public abstract void style_engine_toggle_playback ();
         public abstract void style_engine_sync ();
         public abstract void style_engine_break ();
+        public abstract bool style_engine_is_playing ();
 
 
 

@@ -4,6 +4,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
     public interface IStyleEngine : Object {
         // Properties //////////////////////////////////////////////////////////
         public abstract bool chords_on { get; set; }
+        public abstract bool playing { get; }
 
         // State signals ///////////////////////////////////////////////////////
         internal signal void on_current_part_change (StylePartType part_type);

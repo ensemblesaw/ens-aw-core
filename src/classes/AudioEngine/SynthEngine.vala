@@ -89,6 +89,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
         public static int64 processing_start_time { get; private set; }
         public static uint32 buffer_size { get; private set; }
         public static double sample_rate { get; private set; }
+        public uint8[] velocity_buffer { get; private set; }
 
         // Private Fields
         private SynthModPresets.StyleChannelGain style_channel_gain;
@@ -123,6 +124,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
 
             modulators = new SynthModPresets.Modulators ();
             style_channel_gain = new SynthModPresets.StyleChannelGain ();
+            velocity_buffer = new uint8[20];
         }
 
         construct {
@@ -139,6 +141,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             soundfont_id = rendering_synth.sfload (soundfont_path, true);
             utility_synth.sfload (soundfont_path, true);
             racks = new List<unowned Racks.Rack> ();
+
         }
 
         ~SynthEngine () {
@@ -383,12 +386,11 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
         protected int send_midi (MIDIEvent event) {
             bool handled = false;
 
-            Console.log("key");
             if (
                 chords_on &&
                 (event.event_type == MIDIEvent.EventType.NOTE_ON ||
                 event.event_type == MIDIEvent.EventType.NOTE_OFF) &&
-                event.key > split_point
+                event.key >= split_point
             ) {
                 var fluid_midi_ev = new Fluid.MIDIEvent ();
                 fluid_midi_ev.set_type (event.event_type);
@@ -456,12 +458,23 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             }
 
             if (type == MIDIEvent.EventType.NOTE_ON) {
-                //  velocity_buffer[chan] = value;
+                velocity_buffer[chan] = (uint8)event.get_velocity ();
             }
 
             on_f_midi_receive (event);
 
             return rendering_synth.handle_midi_event (event);
+        }
+
+        protected uint8 get_velocity(uint8 channel) {
+            var velocity = velocity_buffer[channel];
+            if (velocity_buffer[channel] > 1) {
+                velocity_buffer[channel] -= 2;
+            } else {
+                velocity_buffer[channel] = 0;
+            }
+
+            return velocity;
         }
 
         protected void send_chord_ambiance (MIDIEvent event) {

@@ -27,6 +27,11 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
 
         // Player state
         public bool chords_on { get; set; }
+        public bool playing {
+            get {
+                return style_player.get_status () == Fluid.PlayerStatus.PLAYING;
+            }
+        }
         private uint32 absolute_beat_number = 0;
         private uint32 absolute_measure_number = 0;
         private StylePartType _current_part;
