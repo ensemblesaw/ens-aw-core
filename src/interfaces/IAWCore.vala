@@ -40,6 +40,9 @@ namespace Ensembles.ArrangerWorkstation {
          */
         public signal void beat_reset ();
 
+        /**
+         */
+        public signal void chord_changed (Chord chord);
 
         /* Methods ************************************************************/
         /**
@@ -76,6 +79,15 @@ namespace Ensembles.ArrangerWorkstation {
          */
         public abstract unowned Voice[] get_voices ();
 
+        /**
+         * Enables or disables chord interpretation for synthesizer and style engine
+         */
+        public abstract void set_chords_on (bool on);
+
+        /**
+         * Sets how chord should be interpreted
+         */
+        public abstract void set_chord_detection_mode (Analysers.ChordAnalyser.ChordDetectionMode mode);
 
 
         // SYNTHESIZER /////////////////////////////////////////////////////////
@@ -86,6 +98,7 @@ namespace Ensembles.ArrangerWorkstation {
         /* Methods ************************************************************/
         public abstract bool send_midi (MIDIEvent event);
         public abstract void set_voice (VoiceHandPosition hand_position, uint8 bank, uint8 preset);
+        public abstract void set_split_point (uint8 split_point);
 
         // STYLE ENGINE ////////////////////////////////////////////////////////
 

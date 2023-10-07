@@ -26,6 +26,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
         private Fluid.Player style_player;
 
         // Player state
+        public bool chords_on { get; set; }
         private uint32 absolute_beat_number = 0;
         private uint32 absolute_measure_number = 0;
         private StylePartType _current_part;
@@ -61,7 +62,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
         // Chord data
         private Chord chord = Chord() {
             root = ChordRoot.C,
-            type = ChordType.MINOR
+            type = ChordType.MAJOR
         };
         private bool alt_channels_active = false;
         private HashTable<StylePartType, StylePartBounds?> part_bounds_map;
@@ -148,6 +149,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
             // If there is a chord change
             if (queue_chord_change) {
                 queue_chord_change = false;
+
                 synth_engine.halt_notes ();
                 for (uint8 channel = 0; channel < 16; channel++) {
                     if ((channel < 9 || channel > 10) && channel_note_on[channel] >= 0) {
@@ -465,12 +467,19 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
             // If alt channels is enabled, that means it will disable half of
             // the channels based on the scale type
             if (type == MIDIEvent.EventType.NOTE_ON) {
-                if (alt_channels_active) {
-                    if (style.scale_type != chord.type) {
-                        if (channel >= 0 &&
-                            channel != 1 &&
-                            channel < 9) {
-                            return Fluid.OK;
+                if (chords_on) {
+                    if (alt_channels_active) {
+                        if (style.scale_type != chord.type) {
+                            if (channel >= 0 &&
+                                channel != 1 &&
+                                channel < 9) {
+                                return Fluid.OK;
+                            }
+                        } else {
+                            if (channel > 10 &&
+                                channel < 16) {
+                                return Fluid.OK;
+                            }
                         }
                     } else {
                         if (channel > 10 &&
@@ -478,11 +487,8 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
                             return Fluid.OK;
                         }
                     }
-                } else {
-                    if (channel > 10 &&
-                        channel < 16) {
-                        return Fluid.OK;
-                    }
+                } else if (channel < 9 || channel > 10) {
+                    return Fluid.OK;
                 }
             }
 
@@ -685,6 +691,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
          */
         private void change_chord (Chord chord) {
             if (chord.root != ChordRoot.NONE) {
+                this.chord = chord;
                 queue_chord_change = true;
             }
 

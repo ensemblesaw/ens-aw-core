@@ -71,6 +71,8 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
          * Whether the Voice L is active.
          */
         public abstract bool split { get; set; }
+        public abstract uint8 split_point { get; set; }
+        public abstract bool chords_on { get; set; }
 
 
 
@@ -89,6 +91,8 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
         // MIDI Input
         public abstract int send_midi (Models.MIDIEvent event);
         internal abstract int send_f_midi (Fluid.MIDIEvent event);
+        internal abstract void send_chord_ambiance (Models.MIDIEvent event);
+        internal abstract void send_chord_bass (Models.MIDIEvent event, Models.Chord chord);
 
         // Controls
         public abstract void set_voice (VoiceHandPosition hand_position, uint8 bank, uint8 preset);

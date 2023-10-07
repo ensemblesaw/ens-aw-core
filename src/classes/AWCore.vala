@@ -24,6 +24,7 @@ namespace Ensembles.ArrangerWorkstation {
 
         private ISynthEngine synth_engine;
         private MIDIInputHost midi_driver;
+        private Analysers.ChordAnalyser chord_analyser;
         private StyleEngine style_engine;
         private PluginManager plugin_manager;
         private DSPRack main_dsp_rack;
@@ -69,11 +70,39 @@ namespace Ensembles.ArrangerWorkstation {
                 .add_rack (voice_r2_rack)
                 .add_rack (main_dsp_rack);
 
+                chord_analyser = new Analysers.ChordAnalyser ();
+
                 synth_engine.on_midi_receive.connect ((event) => {
+                    if (
+                        (
+                            event.event_type == MIDIEvent.EventType.NOTE_ON ||
+                            event.event_type == MIDIEvent.EventType.NOTE_OFF
+                        ) &&
+                        event.channel == 17
+                    ) {
+                        if (event.key < synth_engine.split_point) {
+                            var chord = chord_analyser.infer (
+                                event.key,
+                                event.event_type == MIDIEvent.EventType.NOTE_ON
+                            );
+                            synth_engine.send_chord_ambiance (event);
+                            synth_engine.send_chord_bass (event, chord);
+                            if (event.event_type == MIDIEvent.EventType.NOTE_ON) {
+                                chord_changed (chord);
+                                if (style_engine != null) {
+                                    style_engine.change_chord (chord);
+                                }
+                            }
+                        }
+                    }
+
                     return on_midi_receive (event) ? Fluid.OK : Fluid.FAILED;
                 });
 
-                midi_driver = new MIDIInputHost (synth_engine, true);
+                synth_engine.split_point = 48;
+                synth_engine.chords_on = true;
+
+                midi_driver = new MIDIInputHost (synth_engine, false);
 
             } catch (FluidError e) {
                 Console.log (e.message, Console.LogLevel.ERROR);
@@ -222,6 +251,21 @@ namespace Ensembles.ArrangerWorkstation {
             return voices;
         }
 
+        public void set_chords_on (bool on) {
+            synth_engine.chords_on = on;
+            if (style_engine != null) {
+                style_engine.chords_on = on;
+            }
+        }
+
+        public void set_chord_detection_mode (Analysers.ChordAnalyser.ChordDetectionMode mode) {
+
+        }
+
+        public void set_split_point (uint8 split_point) {
+            synth_engine.split_point = split_point;
+        }
+
 
         // SYNTHESIZER /////////////////////////////////////////////////////////
         public bool send_midi (MIDIEvent event) {
@@ -254,6 +298,7 @@ namespace Ensembles.ArrangerWorkstation {
                         next_style,
                         current_tempo
                     );
+                    style_engine.chords_on = true;
                     style_engine.beat.connect_after ((measure, beats_per_bar, bar_length) => {
                         beat (measure, beats_per_bar, bar_length);
                     });

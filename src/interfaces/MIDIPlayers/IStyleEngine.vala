@@ -2,6 +2,9 @@ using Ensembles.Models;
 
 namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
     public interface IStyleEngine : Object {
+        // Properties //////////////////////////////////////////////////////////
+        public abstract bool chords_on { get; set; }
+
         // State signals ///////////////////////////////////////////////////////
         internal signal void on_current_part_change (StylePartType part_type);
         internal signal void on_next_part_change (StylePartType part_type);
@@ -16,7 +19,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
         /**
          * Starts style playback if not already playing.
          */
-         public abstract void play ();
+        public abstract void play ();
 
         /**
          * Stops the style playback if already playing.

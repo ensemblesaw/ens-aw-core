@@ -82,6 +82,8 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
 
         public bool layer { get; set; }
         public bool split { get; set; }
+        public uint8 split_point { get; set; }
+        public bool chords_on { get; set; }
 
         // Public Static Fields ////////////////////////////////////////////////
         public static int64 processing_start_time { get; private set; }
@@ -89,7 +91,6 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
         public static double sample_rate { get; private set; }
 
         // Private Fields
-        private Analysers.ChordAnalyser chord_analyser;
         private SynthModPresets.StyleChannelGain style_channel_gain;
         private SynthModPresets.Modulators modulators;
 
@@ -122,7 +123,6 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
 
             modulators = new SynthModPresets.Modulators ();
             style_channel_gain = new SynthModPresets.StyleChannelGain ();
-            chord_analyser = new Analysers.ChordAnalyser ();
         }
 
         construct {
@@ -383,29 +383,41 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
         protected int send_midi (MIDIEvent event) {
             bool handled = false;
 
-            var fluid_midi_ev = new Fluid.MIDIEvent ();
-            fluid_midi_ev.set_type (event.event_type);
-            fluid_midi_ev.set_channel (event.channel);
-            fluid_midi_ev.set_control (event.control);
-            fluid_midi_ev.set_value (event.value);
-            fluid_midi_ev.set_key (event.key);
-            fluid_midi_ev.set_velocity (event.velocity);
-            foreach (var rack in racks) {
-                var voice_rack = rack as Racks.VoiceRack;
-                if (voice_rack != null) {
-                    if (voice_rack.send_midi_event (fluid_midi_ev) == Fluid.OK) {
-                        handled = true;
+            Console.log("key");
+            if (
+                chords_on &&
+                (event.event_type == MIDIEvent.EventType.NOTE_ON ||
+                event.event_type == MIDIEvent.EventType.NOTE_OFF) &&
+                event.key > split_point
+            ) {
+                var fluid_midi_ev = new Fluid.MIDIEvent ();
+                fluid_midi_ev.set_type (event.event_type);
+                fluid_midi_ev.set_channel (event.channel);
+                fluid_midi_ev.set_control (event.control);
+                fluid_midi_ev.set_value (event.value);
+                fluid_midi_ev.set_key (event.key);
+                fluid_midi_ev.set_velocity (event.velocity);
+
+                foreach (var rack in racks) {
+                    var voice_rack = rack as Racks.VoiceRack;
+                    if (voice_rack != null) {
+                        if (voice_rack.send_midi_event (fluid_midi_ev) == Fluid.OK) {
+                            handled = true;
+                        }
                     }
                 }
+
+                on_midi_receive (event);
+                if (handled) {
+                    return Fluid.OK;
+                }
+
+                return rendering_synth.handle_midi_event (fluid_midi_ev);
+            } else {
+                on_midi_receive (event);
             }
 
-            on_midi_receive (event);
-
-            if (handled) {
-                return Fluid.OK;
-            }
-
-            return rendering_synth.handle_midi_event (fluid_midi_ev);
+            return Fluid.OK;
         }
 
         protected int send_f_midi (Fluid.MIDIEvent event) {
@@ -450,6 +462,24 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             on_f_midi_receive (event);
 
             return rendering_synth.handle_midi_event (event);
+        }
+
+        protected void send_chord_ambiance (MIDIEvent event) {
+            if (event.event_type == MIDIEvent.EventType.NOTE_ON) {
+                rendering_synth.noteon (20, event.key + 12, event.velocity);
+                rendering_synth.noteon (22, event.key + 24, event.velocity);
+            } else if (event.event_type == MIDIEvent.EventType.NOTE_OFF) {
+                rendering_synth.noteoff (20, event.key + 12);
+                rendering_synth.noteoff (22, event.key + 24);
+            }
+        }
+
+        protected void send_chord_bass (MIDIEvent event, Chord chord) {
+            if (event.event_type == MIDIEvent.EventType.NOTE_ON) {
+                rendering_synth.noteon (21, chord.root + 36, event.velocity);
+            } else if (event.event_type == MIDIEvent.EventType.NOTE_OFF) {
+                rendering_synth.all_notes_off (21);
+            }
         }
 
         protected void halt_notes (bool except_drums = true) {
