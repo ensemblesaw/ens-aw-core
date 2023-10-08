@@ -567,19 +567,19 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                 lilv_features = lilv_plugin.get_optional_features ();
             }
 
-            assert_nonnull (lilv_features);
+            if (lilv_features != null) {
+                for (var iter = lilv_features.begin (); !lilv_features.is_end (iter);
+                iter = lilv_features.next (iter)) {
+                    string feature = lilv_features.get (iter).as_uri ();
+                    if (!feature_supported (feature)) {
+                        if (required) {
+                            Console.log ("Required feature %s not supported".printf (feature),
+                                Console.LogLevel.WARNING);
+                            return false;
+                        }
 
-            for (var iter = lilv_features.begin (); !lilv_features.is_end (iter);
-            iter = lilv_features.next (iter)) {
-                string feature = lilv_features.get (iter).as_uri ();
-                if (!feature_supported (feature)) {
-                    if (required) {
-                        Console.log ("Required feature %s not supported".printf (feature),
-                            Console.LogLevel.WARNING);
-                        return false;
+                        Console.log ("Optional feature %s not supported".printf (feature));
                     }
-
-                    Console.log ("Optional feature %s not supported".printf (feature));
                 }
             }
 
