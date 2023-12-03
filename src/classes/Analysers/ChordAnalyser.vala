@@ -212,12 +212,14 @@ namespace Ensembles.ArrangerWorkstation.Analysers {
             int16 max = -1;
             int16 max_index = 0;
             for (; i < max_i; i++) {
-                // printf("%d ", chord_possibility[i]);
+                print("%d ", chord_possibility[i]);
                 if (max < chord_possibility[i]) {
                     max = chord_possibility[i];
                     max_index = i;
                 }
             }
+
+            print("\n%d %d\n", max_i, max_index);
 
             var chord = Chord ();
 

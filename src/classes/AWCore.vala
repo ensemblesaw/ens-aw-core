@@ -23,7 +23,7 @@ namespace Ensembles.ArrangerWorkstation {
         public string sf2_name { get; construct; }
 
         private ISynthEngine synth_engine;
-        private MIDIInputHost midi_driver;
+        private MIDIHost midi_host;
         private Analysers.ChordAnalyser chord_analyser;
         private StyleEngine style_engine;
         private PluginManager plugin_manager;
@@ -35,6 +35,7 @@ namespace Ensembles.ArrangerWorkstation {
          // Arranger Data
         private Style[] styles;
         private Style next_style;
+        private bool next_style_autofill;
         private bool stopping_style;
 
         private Voice[] voices;
@@ -109,7 +110,11 @@ namespace Ensembles.ArrangerWorkstation {
                 synth_engine.split_point = 60;
                 synth_engine.chords_on = true;
 
-                midi_driver = new MIDIInputHost (synth_engine, false);
+                midi_host = new MIDIHost (synth_engine, true);
+                midi_host.on_receive.connect (event => {
+                    print(event.key.to_string () + "\n");
+                    synth_engine.send_midi (event);
+                });
 
             } catch (FluidError e) {
                 Console.log (e.message, Console.LogLevel.ERROR);
@@ -273,6 +278,19 @@ namespace Ensembles.ArrangerWorkstation {
             synth_engine.split_point = split_point;
         }
 
+        // MIDI DEVICES ////////////////////////////////////////////////////////
+        public unowned MIDIDevice[] refresh_midi_devices () {
+            return midi_host.refresh ();
+        }
+
+        public void connect_midi_device (MIDIDevice device) {
+            midi_host.connect_dev (device);
+        }
+
+        public void disconnect_midi_device (MIDIDevice device) {
+            midi_host.disconnect_dev (device);
+        }
+
 
         // SYNTHESIZER /////////////////////////////////////////////////////////
         public bool send_midi (MIDIEvent event) {
@@ -289,10 +307,11 @@ namespace Ensembles.ArrangerWorkstation {
 
 
         // STYLE ENGINE ////////////////////////////////////////////////////////
-        public void style_engine_queue_style (Models.Style style) {
+        public void style_engine_queue_style (Models.Style style, bool autofill = false) {
             Console.log ("Changing style to ");
             Console.log (style);
             next_style = style;
+            next_style_autofill = autofill;
             if (!stopping_style) {
                 stopping_style = true;
                 new Thread<void> ("queue-load-style", () => {
@@ -309,6 +328,8 @@ namespace Ensembles.ArrangerWorkstation {
                         next_style,
                         current_tempo
                     );
+                    style_engine.autofill = next_style_autofill;
+                    print("Autofill: %b\n", next_style_autofill);
                     style_engine.chords_on = true;
                     style_engine.beat.connect_after ((measure, beats_per_bar, bar_length) => {
                         beat (measure, beats_per_bar, bar_length);
@@ -369,6 +390,12 @@ namespace Ensembles.ArrangerWorkstation {
             }
 
             return false;
+        }
+
+        public void style_engine_set_auto_fill (bool autofill) {
+            if (style_engine != null) {
+                style_engine.autofill = autofill;
+            }
         }
 
 

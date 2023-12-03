@@ -43,7 +43,7 @@ dependencies = [
     'tests=disabled', 'default_library=static',
     'docs=disabled', 'tests_cpp=disabled',
     ]),
-    # dependency ('portmidi'),
+    dependency ('portmidi'),
     dependency ('libvinject-0.0.0', fallback: ['libvinject', 'vinject_dep']),
     dependency ('libpipewire-0.3'),
     dependency ('libens-shell-cli-0', fallback: ['ens-shell-cli', 'ens_shell_cli_dep']),

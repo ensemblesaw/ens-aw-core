@@ -80,14 +80,23 @@ namespace Ensembles.ArrangerWorkstation {
         public abstract unowned Voice[] get_voices ();
 
         /**
-         * Enables or disables chord interpretation for synthesizer and style engine
+         * Enables or disables chord interpretation for synthesizer and style engine.
          */
         public abstract void set_chords_on (bool on);
 
         /**
-         * Sets how chord should be interpreted
+         * Sets how chord should be interpreted.
          */
         public abstract void set_chord_detection_mode (Analysers.ChordAnalyser.ChordDetectionMode mode);
+
+        /**
+         * Resets midi host and fetches a list of detected devices.
+         */
+        public abstract unowned MIDIDevice[] refresh_midi_devices ();
+
+        public abstract void connect_midi_device (MIDIDevice device);
+
+        public abstract void disconnect_midi_device (MIDIDevice device);
 
 
         // SYNTHESIZER /////////////////////////////////////////////////////////
@@ -117,12 +126,13 @@ namespace Ensembles.ArrangerWorkstation {
          *
          * @param style A Style descriptor
          */
-        public abstract void style_engine_queue_style (Style style);
+        public abstract void style_engine_queue_style (Style style, bool autofill = false);
         public abstract void style_engine_queue_part (StylePartType part);
         public abstract void style_engine_toggle_playback ();
         public abstract void style_engine_sync ();
         public abstract void style_engine_break ();
         public abstract bool style_engine_is_playing ();
+        public abstract void style_engine_set_auto_fill (bool autofill);
 
 
 
