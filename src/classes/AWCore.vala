@@ -291,6 +291,10 @@ namespace Ensembles.ArrangerWorkstation {
             midi_host.disconnect_dev (device);
         }
 
+        public void map_device_channel (uint8 device_channel, uint8 destination_channel) {
+            midi_host.map_channel (device_channel, destination_channel);
+        }
+
 
         // SYNTHESIZER /////////////////////////////////////////////////////////
         public bool send_midi (MIDIEvent event) {
@@ -329,7 +333,6 @@ namespace Ensembles.ArrangerWorkstation {
                         current_tempo
                     );
                     style_engine.autofill = next_style_autofill;
-                    print("Autofill: %b\n", next_style_autofill);
                     style_engine.chords_on = true;
                     style_engine.beat.connect_after ((measure, beats_per_bar, bar_length) => {
                         beat (measure, beats_per_bar, bar_length);

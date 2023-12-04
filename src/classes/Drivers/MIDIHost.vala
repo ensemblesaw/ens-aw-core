@@ -20,13 +20,13 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
         private List<int> active_inputs;
         private PortMidi.Stream[] streams;
         private Gee.HashMap<uint8, uint8> channel_layer_map;
-        private Gee.HashMap<uint8, uint8> note_map;
-        private Gee.HashMap<uint8, uint8> control_map;
+        private Gee.HashMap<uint16, uint16> note_map;
+        private Gee.HashMap<uint16, uint16> control_map;
         private Gee.HashMap<uint8, string> control_label_reverse_map;
 
-        public signal bool configure (uint8 channel, uint8 value, uint8 type);
-        //  public signal void on_note (uint8 key, bool pressed, uint8 velocity, uint8 layer);
+        public signal bool configure_route (uint16 route_sig, uint8 type);
         public signal void on_receive (MIDIEvent event);
+        public signal void control (uint16 route, MIDIEvent event);
 
         public MIDIHost (AudioEngine.ISynthEngine synth_engine, bool mapped_input) {
             Object (
@@ -36,9 +36,10 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
 
             if (mapped_input) {
                 active_inputs = new List<int> ();
-                note_map = new Gee.HashMap<uint8, uint8> ();
-                control_map = new Gee.HashMap<uint8, uint8> ();
+                note_map = new Gee.HashMap<uint16, uint16> ();
+                control_map = new Gee.HashMap<uint16, uint16> ();
                 control_label_reverse_map = new Gee.HashMap<uint8, string> ();
+                channel_layer_map = new Gee.HashMap<uint8, uint8> ();
 
                 PortMidi.initialize ();
             } else {
@@ -152,6 +153,18 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
             }
         }
 
+        public void map_channel (uint8 source_channel, uint8 destination_channel) {
+            channel_layer_map.set (source_channel, destination_channel);
+        }
+
+        public void map_note (uint16 route_sig, uint16 route) {
+            note_map[route_sig] = route;
+        }
+
+        public void map_control (uint16 route_sig, uint16 route) {
+            control_map[route_sig] = route;
+        }
+
         protected int handle_mapped_event (PortMidi.Message midi_message) {
             var configuring = false;
 
@@ -162,27 +175,45 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
             uint8 channel = status & 0x0F;
             uint8 type = status & 0xF0;
 
+            uint16 route_sig = szudzik_hash (channel, data1);
+
             if (type == MIDIEvent.EventType.NOTE_ON ||
                 type == MIDIEvent.EventType.CONTROL_CHANGE
             ) {
-                configuring = configure (channel, data1, type);
+                configuring = configure_route (route_sig, type);
             }
 
             if (!configuring) {
-                uint8 hash = szudzik_hash (channel, data1);
                 if (
                     type == MIDIEvent.EventType.NOTE_ON ||
                     type == MIDIEvent.EventType.NOTE_OFF
                 ) {
-                    if (note_map.has_key (hash)) {
-                        // Process control signal
+                    if (note_map.has_key (route_sig)) {
+                        // Process note as control signal
+                        control (
+                            note_map[route_sig],
+                            new MIDIEvent()
+                            .on_channel (channel_layer_map.get (channel))
+                            .of_type (type)
+                            .with_value (data1)
+                        );
                     } else {
                         on_receive (
                             new MIDIEvent()
-                            .on_channel (17)
+                            .on_channel (channel_layer_map.get (channel))
                             .of_type (type)
                             .with_key (data1)
                             .of_velocity (data2)
+                        );
+                    }
+                } else if (type == MIDIEvent.EventType.CONTROL_CHANGE) {
+                    if (control_map.has_key (route_sig)) {
+                        control (
+                            control_map[route_sig],
+                            new MIDIEvent()
+                            .on_channel (channel_layer_map.get (channel))
+                            .of_type (type)
+                            .with_value (data1)
                         );
                     }
                 }
@@ -191,7 +222,7 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
             return Fluid.OK;
         }
 
-        private uint8 szudzik_hash (uint8 a, uint8 b) {
+        private uint16 szudzik_hash (uint8 a, uint8 b) {
             return a >= b ? a * a + a + b : a + b * b;
         }
     }

@@ -89,6 +89,8 @@ namespace Ensembles.ArrangerWorkstation {
          */
         public abstract void set_chord_detection_mode (Analysers.ChordAnalyser.ChordDetectionMode mode);
 
+        // MIDI HOST ///////////////////////////////////////////////////////////
+
         /**
          * Resets midi host and fetches a list of detected devices.
          */
@@ -97,6 +99,8 @@ namespace Ensembles.ArrangerWorkstation {
         public abstract void connect_midi_device (MIDIDevice device);
 
         public abstract void disconnect_midi_device (MIDIDevice device);
+
+        public abstract void map_device_channel (uint8 device_channel, uint8 destination_channel);
 
 
         // SYNTHESIZER /////////////////////////////////////////////////////////
