@@ -6,3 +6,7 @@ url = https://github.com/ensemblesaw/ens-shell-cli
 path = subprojects/libvinject
 url = https://gitlab.com/geeky_endeavours/vinject.git
 branch = 9.1-unit-tests-using-boxed-values-fix
+
+[submodule "zix"]
+path = subprojects/zix
+url = https://github.com/drobilla/zix
