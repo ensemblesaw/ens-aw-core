@@ -44,7 +44,7 @@ dependencies = [
     'docs=disabled', 'tests_cpp=disabled',
     ]),
     dependency ('portmidi'),
-    dependency ('libvinject-0.0.0', fallback: ['libvinject', 'vinject_dep']),
+    dependency ('Vinject-0.0.0', fallback: ['libvinject', 'vinject_dep']),
     dependency ('libpipewire-0.3'),
     dependency ('libens-shell-cli-0', fallback: ['ens-shell-cli', 'ens_shell_cli_dep']),
     meson.get_compiler ('vala').find_library ('posix'),
