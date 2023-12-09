@@ -46,7 +46,7 @@ dependencies = [
     dependency ('portmidi'),
     dependency ('Vinject-0.0.0', fallback: ['libvinject', 'vinject_dep']),
     dependency ('libpipewire-0.3'),
-    dependency ('libens-shell-cli-0', fallback: ['ens-shell-cli', 'ens_shell_cli_dep']),
+    dependency ('ens-shell-cli-0', fallback: ['ens-shell-cli', 'ens_shell_cli_dep']),
     meson.get_compiler ('vala').find_library ('posix'),
     meson.get_compiler ('c').find_library ('m', required : true),
 ]
