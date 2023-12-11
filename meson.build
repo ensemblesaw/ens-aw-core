@@ -6,6 +6,9 @@ project (
     meson_version: '>=0.57.0'
 )
 
+# Package Config
+pkg = import('pkgconfig')
+
 # Translation module
 i18n = import ('i18n')
 
@@ -67,3 +70,5 @@ ens_aw_core_dep = declare_dependency (
     include_directories: include_directories('.'),
     link_with: libens_aw_core
 )
+
+libens_aw_core_pc = pkg.generate(libens_aw_core)
