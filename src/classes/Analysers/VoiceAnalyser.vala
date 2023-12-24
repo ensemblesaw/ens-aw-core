@@ -15,6 +15,8 @@ namespace Ensembles.ArrangerWorkstation.Analysers {
         public string sf_path { private get; construct; }
         public string sf_schema_path { private get; construct; }
 
+        private List<string> category_id_map;
+
         public VoiceAnalyser (
             IAWCore aw_core,
             Fluid.Synth utility_synth,
@@ -41,6 +43,7 @@ namespace Ensembles.ArrangerWorkstation.Analysers {
             unowned Fluid.Preset sf_preset = null;
             soundfont.iteration_start ();
             sf_preset = soundfont.iteration_next ();
+            category_id_map = new List<string> ();
             while (sf_preset != null) {
                 int preset_num = sf_preset.get_num ();
                 int bank_num = sf_preset.get_banknum ();
@@ -62,7 +65,7 @@ namespace Ensembles.ArrangerWorkstation.Analysers {
                     preset = (uint8) preset_num,
                     bank = (uint8) bank_num,
                     name = voice_name,
-                    category = category,
+                    category = "%03u ".printf (map_category (category)) + category,
                     sf_path = sf_path
                 });
 
@@ -71,6 +74,14 @@ namespace Ensembles.ArrangerWorkstation.Analysers {
                 aw_core.send_loading_status (_("Loading Voice: ") + voice_name + "…");
 
                 sf_preset = soundfont.iteration_next ();
+            }
+
+            voice_list.sort ((a, b) => {
+                return strcmp(a.category, b.category);
+            });
+
+            for (var i = 0; i < voice_list.length (); i++) {
+                voice_list.nth_data (i).category = voice_list.nth_data (i).category.substring (4);
             }
         }
 
@@ -91,6 +102,17 @@ namespace Ensembles.ArrangerWorkstation.Analysers {
             }
 
             return voices;
+        }
+
+        private uint map_category (string? category) {
+            for(uint i = 0; i < category_id_map.length (); i++) {
+                if (strcmp (category_id_map.nth_data (i), category) == 0) {
+                    return i;
+                }
+            }
+
+            category_id_map.append (category);
+            return category_id_map.length () - 1;
         }
     }
 }
