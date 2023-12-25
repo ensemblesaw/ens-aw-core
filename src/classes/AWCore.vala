@@ -251,6 +251,10 @@ namespace Ensembles.ArrangerWorkstation {
             // Send ready signal
             Idle.add (() => {
                 ready ();
+                Timeout.add (1000, () => {
+                    synth_engine.play_intro_sound ();
+                    return false;
+                });
                 return false;
             });
         }
@@ -353,6 +357,7 @@ namespace Ensembles.ArrangerWorkstation {
                         on_break_change (active);
                     });
                     stopping_style = false;
+                    on_tempo_change (style_engine.tempo);
 
                     style_engine.queue_next_part (current_part);
 
@@ -398,6 +403,21 @@ namespace Ensembles.ArrangerWorkstation {
         public void style_engine_set_auto_fill (bool autofill) {
             if (style_engine != null) {
                 style_engine.autofill = autofill;
+            }
+        }
+
+        public uint8 style_engine_get_tempo () {
+            if (style_engine != null) {
+                return style_engine.tempo;
+            }
+
+            return 120;
+        }
+
+        public void style_engine_set_tempo (uint8 tempo) {
+            if (style_engine != null) {
+                style_engine.tempo = tempo;
+                on_tempo_change (tempo);
             }
         }
 

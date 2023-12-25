@@ -56,6 +56,15 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
         }
         private StylePartType current_variation;
 
+        public uint8 tempo {
+            get {
+                return (uint8) style_player.get_bpm ();
+            }
+            set {
+                style_player.set_tempo (Fluid.TempoType.EXTERNAL_BPM, (double) value);
+            }
+        }
+
         // Per channel note-on tracking flags
         private int[] channel_note_on = {
             -1, -1, -1, -1,

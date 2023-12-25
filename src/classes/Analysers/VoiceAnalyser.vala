@@ -83,6 +83,8 @@ namespace Ensembles.ArrangerWorkstation.Analysers {
             for (var i = 0; i < voice_list.length (); i++) {
                 voice_list.nth_data (i).category = voice_list.nth_data (i).category.substring (4);
             }
+
+            category_id_map = null;
         }
 
         public Voice[] get_voices () {

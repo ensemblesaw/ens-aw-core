@@ -121,6 +121,7 @@ namespace Ensembles.ArrangerWorkstation {
         public signal void on_next_part_change (StylePartType part_type);
         public signal void on_sync_change (bool active);
         public signal void on_break_change (bool active);
+        public signal void on_tempo_change (uint8 tempo);
 
 
         /* Methods ************************************************************/
@@ -137,6 +138,8 @@ namespace Ensembles.ArrangerWorkstation {
         public abstract void style_engine_break ();
         public abstract bool style_engine_is_playing ();
         public abstract void style_engine_set_auto_fill (bool autofill);
+        public abstract uint8 style_engine_get_tempo ();
+        public abstract void style_engine_set_tempo (uint8 tempo);
 
 
 

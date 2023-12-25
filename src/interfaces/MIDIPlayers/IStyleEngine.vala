@@ -5,6 +5,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
         // Properties //////////////////////////////////////////////////////////
         public abstract bool chords_on { get; set; }
         public abstract bool playing { get; }
+        public abstract uint8 tempo { get; set; }
 
         // State signals ///////////////////////////////////////////////////////
         internal signal void on_current_part_change (StylePartType part_type);
