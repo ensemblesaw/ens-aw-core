@@ -14,7 +14,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
         internal signal void on_break_change (bool active);
 
         // Beats
-        internal signal void beat (bool measure, uint8 beats_per_bar, uint8 bar_division);
+        internal signal void beat (bool is_measure, uint measure, uint8 beats_per_bar, uint8 bar_division);
         internal signal void beat_reset ();
 
         // Functions ///////////////////////////////////////////////////////////

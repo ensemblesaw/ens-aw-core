@@ -55,6 +55,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
             }
         }
         private StylePartType current_variation;
+        public uint measure { get; set; }
 
         public uint8 tempo {
             get {
@@ -332,9 +333,20 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
                 return style_player.seek ((int)break_start);
             }
 
-            bool measure;
-            if (is_beat (ticks, out measure)) {
-                beat (measure, style.time_signature_n, style.time_signature_d);
+            bool is_measure;
+            if (is_beat (ticks, out is_measure)) {
+                bool is_fill = current_part == StylePartType.FILL_A ||
+                current_part == StylePartType.FILL_B ||
+                current_part == StylePartType.FILL_C ||
+                current_part == StylePartType.FILL_D ||
+                current_part == StylePartType.BREAK;
+                if (!is_measure || !is_fill){
+                    if (is_measure) {
+                        measure++;
+                    }
+                    beat (is_measure, measure, style.time_signature_n, style.time_signature_d);
+                }
+
 
                 if (ticks >= current_measure_end) {
                     if (sync_stop) {
@@ -408,6 +420,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
                                 current_variation = StylePartType.VARIATION_D;
                             }
                             current_part = next_part;
+                            measure++;
                             return seek_measure (part_bounds_map.get (next_part).start);
                         case StylePartType.BREAK:
                             if (current_part == StylePartType.INTRO_1 ||
@@ -421,6 +434,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
                             } else {
                                 current_part = next_part;
                             }
+                            measure++;
                             on_break_change (false);
                             return seek_measure (part_bounds_map.get (next_part).start);
                         default:
@@ -436,6 +450,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
             halt_continuous_notes ();
             absolute_beat_number = ticks / style.time_resolution;
             absolute_measure_number = ticks / (style.time_resolution * style.time_signature_n);
+            beat (true, measure, style.time_signature_n, style.time_signature_d);
             return style_player.seek (ticks);
         }
 
@@ -562,6 +577,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
         private void play () {
             if (style_player.get_status () != Fluid.PlayerStatus.PLAYING) {
                 next_part = current_part;
+                measure = 0;
                 synth_engine.stop_all_sounds ();
                 style_player.seek (part_bounds_map.get (current_part).start);
                 style_player.play ();
@@ -575,6 +591,7 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
             if (style_player.get_status () == Fluid.PlayerStatus.PLAYING) {
                 style_player.stop ();
                 halt_continuous_notes ();
+                measure = 0;
                 beat_reset ();
             }
         }

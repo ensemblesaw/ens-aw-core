@@ -32,7 +32,7 @@ namespace Ensembles.ArrangerWorkstation {
         /**
          * Sends a beat signal, from style player, metronome or song player.
          */
-        public signal void beat (bool measure, uint8 beats_per_bar,
+        public signal void beat (bool is_measure, uint measure, uint8 beats_per_bar,
             uint8 bar_length);
 
         /**

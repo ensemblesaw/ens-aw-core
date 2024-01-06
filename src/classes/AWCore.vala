@@ -338,8 +338,8 @@ namespace Ensembles.ArrangerWorkstation {
                     );
                     style_engine.autofill = next_style_autofill;
                     style_engine.chords_on = true;
-                    style_engine.beat.connect_after ((measure, beats_per_bar, bar_length) => {
-                        beat (measure, beats_per_bar, bar_length);
+                    style_engine.beat.connect_after ((is_measure, measure, beats_per_bar, bar_length) => {
+                        beat (is_measure, measure, beats_per_bar, bar_length);
                     });
                     style_engine.beat_reset.connect_after (() => {
                         beat_reset ();
