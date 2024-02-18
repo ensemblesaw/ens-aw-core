@@ -110,7 +110,7 @@ namespace Ensembles.ArrangerWorkstation {
                 synth_engine.split_point = 60;
                 synth_engine.chords_on = true;
 
-                midi_host = new MIDIHost (synth_engine, true);
+                midi_host = new MIDIHost (synth_engine, false);
                 midi_host.on_receive.connect (event => {
                     print(event.key.to_string () + "\n");
                     synth_engine.send_midi (event);
