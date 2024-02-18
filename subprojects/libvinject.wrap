@@ -1,5 +1,6 @@
 [wrap-git]
 url=https://gitlab.com/geeky_endeavours/vinject.git
+revision = main
 depth=1
 
 [provide]
