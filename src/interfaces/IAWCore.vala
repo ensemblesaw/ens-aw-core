@@ -91,16 +91,39 @@ namespace Ensembles.ArrangerWorkstation {
 
         // MIDI HOST ///////////////////////////////////////////////////////////
 
+        /* Signals ************************************************************/
+        public signal bool configure_midi_device (uint32 route_sig, uint8 type, uint8 channel, uint8 cc);
+        /**
+         * Control the shell using connected MIDI device.
+         */
+        public signal void midi_device_on_ui_control (uint16 control_route, Models.MIDIEvent event);
+
+        /* Methods ************************************************************/
         /**
          * Resets midi host and fetches a list of detected devices.
          */
         public abstract unowned MIDIDevice[] refresh_midi_devices ();
 
+        /**
+         * Connect to the specified MIDI device to receive MIDI signals from it.
+         */
         public abstract void connect_midi_device (MIDIDevice device);
 
+        /**
+         * Disconnect MIDI device to stop getting MIDI signals from it.
+         */
         public abstract void disconnect_midi_device (MIDIDevice device);
 
+        /**
+         * Map device channel to a synthesizer channel (Usually 17, 18 and 19
+         * for layers R1, R2 and L respectively).
+         */
         public abstract void map_device_channel (uint8 device_channel, uint8 destination_channel);
+
+        /**
+         * Map a cc signature to a UI control.
+         */
+        public abstract void map_cc_from_midi_device (uint32 route_sig, uint16 control_route);
 
 
         // SYNTHESIZER /////////////////////////////////////////////////////////

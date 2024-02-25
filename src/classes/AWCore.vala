@@ -110,10 +110,19 @@ namespace Ensembles.ArrangerWorkstation {
                 synth_engine.split_point = 60;
                 synth_engine.chords_on = true;
 
-                midi_host = new MIDIHost (synth_engine, false);
+                midi_host = new MIDIHost (synth_engine, true);
                 midi_host.on_receive.connect (event => {
-                    print(event.key.to_string () + "\n");
                     synth_engine.send_midi (event);
+                });
+                midi_host.configure_route.connect ((route_sig, type, channel, cc) => {
+                    if (configure_midi_device (route_sig, type, channel, cc)) {
+                        return true;
+                    }
+
+                    return false;
+                });
+                midi_host.control.connect ((route, event) => {
+                    midi_device_on_ui_control (route, event);
                 });
 
             } catch (FluidError e) {
@@ -297,6 +306,10 @@ namespace Ensembles.ArrangerWorkstation {
 
         public void map_device_channel (uint8 device_channel, uint8 destination_channel) {
             midi_host.map_channel (device_channel, destination_channel);
+        }
+
+        public void map_cc_from_midi_device (uint32 route_sig, uint16 control_route) {
+            midi_host.map_control (route_sig, control_route);
         }
 
 

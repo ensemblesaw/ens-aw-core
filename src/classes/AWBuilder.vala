@@ -7,6 +7,16 @@ namespace Ensembles.ArrangerWorkstation {
         internal string sf2_name = "Ensembles";
         internal List<string> style_search_paths = new List<string> ();
 
+        /*
+         * The delegate below is referenced in the `Services.vala` file as
+         * part of a builder pattern used for registering AWCore as a service
+         * via dependency injection.
+         */
+
+
+        /**
+         * Provides a handy way to use the builder functions.
+         */
         public delegate void AWBuilderCallback (AWBuilder arranger_workstation_builder);
 
         public AWBuilder use_driver (ISynthEngine.Driver driver) {

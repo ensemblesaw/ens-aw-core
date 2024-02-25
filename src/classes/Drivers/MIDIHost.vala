@@ -19,12 +19,11 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
         private MIDIDevice[] midi_devices;
         private List<int> active_inputs;
         private PortMidi.Stream[] streams;
-        private Gee.HashMap<uint8, uint8> channel_layer_map;
-        private Gee.HashMap<uint16, uint16> note_map;
-        private Gee.HashMap<uint16, uint16> control_map;
-        private Gee.HashMap<uint8, string> control_label_reverse_map;
+        private Gee.HashMap<uint8, uint8> channel_map;
+        private Gee.HashMap<uint32, uint16> event_map;
+        private Gee.HashMap<uint8, string> event_label_reverse_map;
 
-        public signal bool configure_route (uint16 route_sig, uint8 type);
+        public signal bool configure_route (uint32 route_sig, uint8 type, uint8 channel, uint8 cc);
         public signal void on_receive (MIDIEvent event);
         public signal void control (uint16 route, MIDIEvent event);
 
@@ -36,10 +35,9 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
 
             if (mapped_input) {
                 active_inputs = new List<int> ();
-                note_map = new Gee.HashMap<uint16, uint16> ();
-                control_map = new Gee.HashMap<uint16, uint16> ();
-                control_label_reverse_map = new Gee.HashMap<uint8, string> ();
-                channel_layer_map = new Gee.HashMap<uint8, uint8> ();
+                event_map = new Gee.HashMap<uint32, uint16> ();
+                event_label_reverse_map = new Gee.HashMap<uint8, string> ();
+                channel_map = new Gee.HashMap<uint8, uint8> ();
 
                 PortMidi.initialize ();
             } else {
@@ -154,33 +152,33 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
         }
 
         public void map_channel (uint8 source_channel, uint8 destination_channel) {
-            channel_layer_map.set (source_channel, destination_channel);
+            channel_map.set (source_channel, destination_channel);
         }
 
-        public void map_note (uint16 route_sig, uint16 route) {
-            note_map[route_sig] = route;
-        }
-
-        public void map_control (uint16 route_sig, uint16 route) {
-            control_map[route_sig] = route;
+        public void map_control (uint32 route_sig, uint16 control_route) {
+            event_map[route_sig] = control_route;
         }
 
         protected int handle_mapped_event (PortMidi.Message midi_message) {
             var configuring = false;
 
             uint8 status = (uint8) midi_message.status ();
-            uint8 data1 = (uint8) midi_message.data1 (); // value / key
-            uint8 data2 = (uint8) midi_message.data2 (); // velocity
+            uint8 cc = (uint8) midi_message.data1 (); // cc / key
+            uint8 value = (uint8) midi_message.data2 (); // value / velocity
 
             uint8 channel = status & 0x0F;
             uint8 type = status & 0xF0;
 
-            uint16 route_sig = szudzik_hash (channel, data1);
+            uint32 route_sig = hash (channel, type, cc);
 
             if (type == MIDIEvent.EventType.NOTE_ON ||
                 type == MIDIEvent.EventType.CONTROL_CHANGE
             ) {
-                configuring = configure_route (route_sig, type);
+                configuring = configure_route (route_sig, type, channel, cc);
+            }
+
+            if (configuring){
+                print("Conf\n");
             }
 
             if (!configuring) {
@@ -188,32 +186,36 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
                     type == MIDIEvent.EventType.NOTE_ON ||
                     type == MIDIEvent.EventType.NOTE_OFF
                 ) {
-                    if (note_map.has_key (route_sig)) {
+                    Console.log(route_sig.to_string ());
+                    if (event_map.has_key (route_sig)) {
                         // Process note as control signal
-                        control (
-                            note_map[route_sig],
-                            new MIDIEvent()
-                            .on_channel (channel_layer_map.get (channel))
-                            .of_type (type)
-                            .with_value (data1)
-                        );
+                        Console.log("Controlling[%u]".printf (event_map[route_sig]));
+                        if (type == MIDIEvent.EventType.NOTE_ON) {
+                            control (
+                                event_map[route_sig],
+                                new MIDIEvent()
+                                .on_channel (channel)
+                                .of_type (type)
+                                .with_value (cc)
+                            );
+                        }
                     } else {
                         on_receive (
                             new MIDIEvent()
-                            .on_channel (channel_layer_map.get (channel))
+                            .on_channel (channel_map.get (channel))
                             .of_type (type)
-                            .with_key (data1)
-                            .of_velocity (data2)
+                            .with_key (cc)
+                            .of_velocity (value)
                         );
                     }
                 } else if (type == MIDIEvent.EventType.CONTROL_CHANGE) {
-                    if (control_map.has_key (route_sig)) {
+                    if (event_map.has_key (route_sig)) {
                         control (
-                            control_map[route_sig],
+                            event_map[route_sig],
                             new MIDIEvent()
-                            .on_channel (channel_layer_map.get (channel))
+                            .on_channel (channel)
                             .of_type (type)
-                            .with_value (data1)
+                            .with_value (value)
                         );
                     }
                 }
@@ -222,8 +224,8 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
             return Fluid.OK;
         }
 
-        private uint16 szudzik_hash (uint8 a, uint8 b) {
-            return a >= b ? a * a + a + b : a + b * b;
+        private uint32 hash (uint8 a, uint8 b, uint8 c) {
+            return (uint32)a << 16 | (uint32)b << 8 | c;
         }
     }
 }
