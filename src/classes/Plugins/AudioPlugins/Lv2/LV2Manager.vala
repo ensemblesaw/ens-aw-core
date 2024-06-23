@@ -32,7 +32,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
     public class LV2Manager : Object {
         internal static Lilv.World world = new Lilv.World ();
 
-        internal static SyMap symap = new SyMap ();
+        internal static Utils.SyMap symap = new Utils.SyMap ();
         internal static Mutex symap_lock = Mutex ();
 
         internal static HashTable<string, Lilv.Node> node_map =

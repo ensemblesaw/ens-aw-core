@@ -38,6 +38,7 @@ classes = files (
     'classes/Utils/StyleMIDIModifiers.vala',
     'classes/Utils/MIDI.vala',
     'classes/Utils/Math.vala',
+    'classes/Utils/SyMap.vala',
 
     # Models
     'classes/Models/Chord.vala',
@@ -64,7 +65,6 @@ classes = files (
     # LV2 Plugins
     'classes/Plugins/AudioPlugins/Lv2/LV2Manager.vala',
     'classes/Plugins/AudioPlugins/Lv2/LV2Plugin.vala',
-    'classes/Plugins/AudioPlugins/Lv2/LV2SyMap.vala',
     'classes/Plugins/AudioPlugins/Lv2/LV2EvBuf.vala',
     'classes/Plugins/AudioPlugins/Lv2/LV2Worker.vala',
     'classes/Plugins/AudioPlugins/Lv2/LV2Options.vala',

@@ -188,7 +188,7 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
                 ) {
                     Console.log(route_sig.to_string ());
                     if (event_map.has_key (route_sig)) {
-                        // Process note as control signal
+                        // Process note as ui control signal
                         Console.log("Controlling[%u]".printf (event_map[route_sig]));
                         if (type == MIDIEvent.EventType.NOTE_ON) {
                             control (
@@ -200,6 +200,7 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
                             );
                         }
                     } else {
+                        // Send MIDI event to synth engine
                         on_receive (
                             new MIDIEvent()
                             .on_channel (channel_map.get (channel))
@@ -210,6 +211,7 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
                     }
                 } else if (type == MIDIEvent.EventType.CONTROL_CHANGE) {
                     if (event_map.has_key (route_sig)) {
+                        // ui control
                         control (
                             event_map[route_sig],
                             new MIDIEvent()

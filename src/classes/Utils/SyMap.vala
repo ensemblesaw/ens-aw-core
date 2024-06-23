@@ -25,7 +25,10 @@
  * ---
  */
 
-namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
+namespace Ensembles.ArrangerWorkstation.Utils {
+    /**
+     * Symbol Map
+     */
     public class SyMap {
         private List<string> symbols;
         public SyMap () {
