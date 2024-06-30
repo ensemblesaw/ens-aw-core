@@ -84,6 +84,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
         public bool split { get; set; }
         public uint8 split_point { get; set; }
         public bool chords_on { get; set; }
+        public bool fullrange_chords { get; set; }
 
         // Public Static Fields ////////////////////////////////////////////////
         public static int64 processing_start_time { get; private set; }
@@ -387,36 +388,38 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             bool handled = false;
 
             if (
-                chords_on &&
-                (event.event_type == MIDIEvent.EventType.NOTE_ON ||
-                event.event_type == MIDIEvent.EventType.NOTE_OFF) &&
-                event.key >= split_point
+                (
+                    event.event_type == MIDIEvent.EventType.NOTE_ON ||
+                    event.event_type == MIDIEvent.EventType.NOTE_OFF
+                )
             ) {
-                var fluid_midi_ev = new Fluid.MIDIEvent ();
-                fluid_midi_ev.set_type (event.event_type);
-                fluid_midi_ev.set_channel (event.channel);
-                fluid_midi_ev.set_control (event.control);
-                fluid_midi_ev.set_value (event.value);
-                fluid_midi_ev.set_key (event.key);
-                fluid_midi_ev.set_velocity (event.velocity);
+                if (fullrange_chords ||!chords_on || (chords_on && event.key >= split_point)) {
+                    var fluid_midi_ev = new Fluid.MIDIEvent ();
+                    fluid_midi_ev.set_type (event.event_type);
+                    fluid_midi_ev.set_channel (event.channel);
+                    fluid_midi_ev.set_control (event.control);
+                    fluid_midi_ev.set_value (event.value);
+                    fluid_midi_ev.set_key (event.key);
+                    fluid_midi_ev.set_velocity (event.velocity);
 
-                foreach (var rack in racks) {
-                    var voice_rack = rack as Racks.VoiceRack;
-                    if (voice_rack != null) {
-                        if (voice_rack.send_midi_event (fluid_midi_ev) == Fluid.OK) {
-                            handled = true;
+                    foreach (var rack in racks) {
+                        var voice_rack = rack as Racks.VoiceRack;
+                        if (voice_rack != null) {
+                            if (voice_rack.send_midi_event (fluid_midi_ev) == Fluid.OK) {
+                                handled = true;
+                            }
                         }
                     }
-                }
 
-                on_midi_receive (event);
-                if (handled) {
-                    return Fluid.OK;
-                }
+                    on_midi_receive (event);
+                    if (handled) {
+                        return Fluid.OK;
+                    }
 
-                return rendering_synth.handle_midi_event (fluid_midi_ev);
-            } else {
-                on_midi_receive (event);
+                    return rendering_synth.handle_midi_event (fluid_midi_ev);
+                } else {
+                    on_midi_receive (event);
+                }
             }
 
             return Fluid.OK;

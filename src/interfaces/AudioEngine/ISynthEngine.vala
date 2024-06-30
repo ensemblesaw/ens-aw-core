@@ -73,6 +73,7 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
         public abstract bool split { get; set; }
         public abstract uint8 split_point { get; set; }
         public abstract bool chords_on { get; set; }
+        public abstract bool fullrange_chords { get; set; }
 
 
         // Signals /////////////////////////////////////////////////////////////

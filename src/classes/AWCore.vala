@@ -83,28 +83,30 @@ namespace Ensembles.ArrangerWorkstation {
                         ) &&
                         event.channel == 17
                     ) {
-                        if (event.key < synth_engine.split_point) {
-                            var chord = chord_analyser.infer (
-                                event.key,
-                                event.event_type == MIDIEvent.EventType.NOTE_ON
-                            );
+                        if (synth_engine.chords_on) {
+                            if (event.key < synth_engine.split_point || chord_analyser.detection_mode == FULL_RANGE) {
+                                var chord = chord_analyser.infer (
+                                    event.key,
+                                    event.event_type == MIDIEvent.EventType.NOTE_ON
+                                );
 
-                            if (event.event_type == MIDIEvent.EventType.NOTE_ON) {
-                                chord_changed (chord);
-                                if (style_engine != null) {
-                                    style_engine.change_chord (chord);
+                                if (event.event_type == MIDIEvent.EventType.NOTE_ON) {
+                                    chord_changed (chord);
+                                    if (style_engine != null) {
+                                        style_engine.change_chord (chord);
 
-                                    if (!style_engine.playing) {
-                                        synth_engine.send_chord_ambiance (event);
-                                        synth_engine.send_chord_bass (event, chord);
+                                        if (!style_engine.playing) {
+                                            synth_engine.send_chord_ambiance (event);
+                                            synth_engine.send_chord_bass (event, chord);
+                                        }
                                     }
+                                } else {
+                                    synth_engine.send_chord_ambiance (event);
+                                    synth_engine.send_chord_bass (event, chord);
                                 }
-                            } else {
-                                synth_engine.send_chord_ambiance (event);
-                                synth_engine.send_chord_bass (event, chord);
-                            }
 
-                            event.value = 1;
+                                event.value = 1;
+                            }
                         }
                     }
 
