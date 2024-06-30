@@ -15,6 +15,16 @@ namespace Ensembles.ArrangerWorkstation.Analysers {
             SPLIT_SHORT = 1,
             FULL_RANGE = 2
         }
+        private ChordDetectionMode _detection_mode;
+
+        public ChordDetectionMode detection_mode {
+            get {
+                return _detection_mode;
+            }
+            set {
+                _detection_mode = value;
+            }
+        }
 
         construct {
             key_track = new uint8[13];

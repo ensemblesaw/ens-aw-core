@@ -74,6 +74,8 @@ namespace Ensembles.ArrangerWorkstation {
                 chord_analyser = new Analysers.ChordAnalyser ();
 
                 synth_engine.on_midi_receive.connect ((event) => {
+                    event.value = 0;
+
                     if (
                         (
                             event.event_type == MIDIEvent.EventType.NOTE_ON ||
@@ -101,6 +103,8 @@ namespace Ensembles.ArrangerWorkstation {
                                 synth_engine.send_chord_ambiance (event);
                                 synth_engine.send_chord_bass (event, chord);
                             }
+
+                            event.value = 1;
                         }
                     }
 

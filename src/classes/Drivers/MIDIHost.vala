@@ -200,6 +200,7 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
                             );
                         }
                     } else {
+                        Console.log("velocity " + value.to_string ());
                         // Send MIDI event to synth engine
                         on_receive (
                             new MIDIEvent()
