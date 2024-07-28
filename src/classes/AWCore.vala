@@ -114,7 +114,7 @@ namespace Ensembles.ArrangerWorkstation {
                 });
 
                 synth_engine.split_point = 60;
-                synth_engine.chords_on = true;
+                synth_engine.chords_on = false;
 
                 midi_host = new MIDIHost (synth_engine, true);
                 midi_host.on_receive.connect (event => {

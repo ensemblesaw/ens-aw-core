@@ -107,12 +107,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                     requests.read (buf, size);
 
                     // Lock and dispatch request to plugin's work handler
-                    if (plugin_lock == null) {
-                        Console.log ("FATAL", Console.LogLevel.ERROR);
-                    }
-
                     plugin_lock.wait ();
-
                     iface.work (
                         handle,
                         respond,

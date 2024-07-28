@@ -408,6 +408,8 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         private void setup_workers () {
             Zix.Sem.init (out plugin_sem_lock, 1);
 
+            // The below code somehow prevents a semaphore futex error
+            Thread.usleep (50);
             // Create workers if necessary
             if (lilv_plugin.has_extension_data (LV2Manager.get_node_by_uri (Worker._interface))) {
                 worker = new LV2Worker (plugin_sem_lock, true);
