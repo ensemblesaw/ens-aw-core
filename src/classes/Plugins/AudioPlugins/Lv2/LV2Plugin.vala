@@ -85,7 +85,10 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
 
         // Plugin Worker Thread
         LV2Worker worker;
-        Zix.Sem plugin_sem_lock;
+
+        // Using Mutex instead of Zix Sem seems to prevent the crashing
+        //  Zix.Sem plugin_sem_lock;
+        Mutex plugin_sem_lock;
 
         // Plugin Instances ////////////////////////////////////////////////////
         private Lilv.Instance lv2_instance;
@@ -406,7 +409,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         }
 
         private void setup_workers () {
-            Zix.Sem.init (out plugin_sem_lock, 1);
+            plugin_sem_lock = Mutex ();
 
             // The below code somehow prevents a semaphore futex error
             Thread.usleep (50);

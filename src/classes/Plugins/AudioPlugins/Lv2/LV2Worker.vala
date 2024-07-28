@@ -34,7 +34,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
         private Zix.Ring requests;                          ///< Requests to the worker
         private Zix.Ring responses;                         ///< Responses from the worker
         private void* response;                             ///< Worker response buffer
-        private unowned Zix.Sem? plugin_lock;               ///< Lock for plugin work() method
+        private unowned Mutex? plugin_lock;               ///< Lock for plugin work() method
         private bool queue_exit;                            ///< Exit flag
         private Zix.Sem sem;                                ///< Worker semaphore
         private Zix.Thread thread;                          ///< Worker thread
@@ -45,7 +45,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
 
         private const uint MAX_PACKET_SIZE = 4096U;
 
-        public LV2Worker (Zix.Sem? plugin_lock, bool threaded) {
+        public LV2Worker (Mutex? plugin_lock, bool threaded) {
             this.threaded = threaded;
             responses = new Zix.Ring (null, MAX_PACKET_SIZE);
             response = Posix.calloc (1, MAX_PACKET_SIZE);
@@ -107,14 +107,14 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                     requests.read (buf, size);
 
                     // Lock and dispatch request to plugin's work handler
-                    plugin_lock.wait ();
+                    plugin_lock.lock ();
                     iface.work (
                         handle,
                         respond,
                         (Worker.RespondHandle) this,
                         size, buf
                     );
-                    plugin_lock.post ();
+                    plugin_lock.unlock ();
                 } else {
                     // Reallocation failed, skip request to avoid corrupting ring
                     requests.skip (size);
@@ -181,7 +181,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                     sem.post ();
                 }
             } else {
-                plugin_lock.wait ();
+                plugin_lock.lock ();
                 st = iface.work (
                     handle,
                     respond,
@@ -189,7 +189,7 @@ namespace Ensembles.ArrangerWorkstation.Plugins.AudioPlugins.Lv2 {
                     size,
                     data
                 );
-                plugin_lock.post ();
+                plugin_lock.unlock ();
             }
 
             return st;
