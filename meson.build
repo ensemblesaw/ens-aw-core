@@ -61,8 +61,7 @@ libens_aw_core = static_library (
     meson.project_name () + '-' + meson.project_version().split('.')[0],
     sources,
     dependencies: dependencies,
-    install: true,
-    install_dir: [true, true, true]
+    install: true
 )
 
 ens_aw_core_dep = declare_dependency (
