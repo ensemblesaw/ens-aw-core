@@ -212,6 +212,8 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
                     dry_buffer_r[k] = wet_buffer_r[k];
                 }
 
+                ((SynthEngine) synth_engine).on_render (wet_buffer_l, wet_buffer_r, len);
+
                 return Fluid.OK;
             }, this);
 

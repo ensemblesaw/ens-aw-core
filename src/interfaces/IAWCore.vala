@@ -130,6 +130,7 @@ namespace Ensembles.ArrangerWorkstation {
 
         /* Signals ************************************************************/
         public signal bool on_midi_receive (MIDIEvent event);
+        public signal void on_synth_render (float* buffer_l, float* buffer_r, int len);
 
         /* Methods ************************************************************/
         public abstract bool send_midi (MIDIEvent event);

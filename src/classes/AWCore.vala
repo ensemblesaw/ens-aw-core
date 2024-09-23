@@ -113,6 +113,10 @@ namespace Ensembles.ArrangerWorkstation {
                     return on_midi_receive (event) ? Fluid.OK : Fluid.FAILED;
                 });
 
+                synth_engine.on_render.connect ((buffer_l, buffer_r, len) => {
+                    on_synth_render (buffer_l, buffer_r, len);
+                });
+
                 synth_engine.split_point = 60;
                 synth_engine.chords_on = false;
 
