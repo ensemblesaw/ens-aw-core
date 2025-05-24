@@ -221,6 +221,13 @@ namespace Ensembles.ArrangerWorkstation.Drivers {
                             .with_value (value)
                         );
                     }
+                } else if (type == MIDIEvent.EventType.PITCH_BEND) {
+                    on_receive (
+                        new MIDIEvent()
+                        .on_channel (channel_map.get (channel))
+                        .of_type (type)
+                        .with_value (value)
+                    );
                 }
             }
 

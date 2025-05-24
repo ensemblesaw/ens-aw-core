@@ -75,9 +75,9 @@ namespace Ensembles.ArrangerWorkstation.MIDIPlayers {
         };
 
         // Chord data
-        private Chord chord = Chord() {
+        private Chord chord = Chord () {
             root = ChordRoot.C,
-            type = ChordType.MAJOR
+            type = ChordType.MINOR
         };
         private bool alt_channels_active = false;
         private HashTable<StylePartType, StylePartBounds?> part_bounds_map;

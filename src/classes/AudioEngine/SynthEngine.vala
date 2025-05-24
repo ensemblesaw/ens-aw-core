@@ -271,8 +271,8 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
             rendering_synth.cc (19, MIDIEvent.Control.BRIGHTNESS, 120);
 
             // Reverb and Chorus for R1 voice
-            rendering_synth.cc (17, MIDIEvent.Control.REVERB, 100);
-            rendering_synth.cc (17, MIDIEvent.Control.CHORUS, 100);
+            rendering_synth.cc (17, MIDIEvent.Control.REVERB, 110);
+            rendering_synth.cc (17, MIDIEvent.Control.CHORUS, 10);
 
             // Reverb and Chorus for intro tone
             rendering_synth.cc (23, MIDIEvent.Control.REVERB, 127);
@@ -422,6 +422,29 @@ namespace Ensembles.ArrangerWorkstation.AudioEngine {
                 } else {
                     on_midi_receive (event);
                 }
+            } else if (event.event_type == MIDIEvent.EventType.PITCH_BEND) {
+                var fluid_midi_ev = new Fluid.MIDIEvent ();
+                fluid_midi_ev.set_type (event.event_type);
+                fluid_midi_ev.set_channel (event.channel);
+                fluid_midi_ev.set_value (event.value);
+
+                foreach (var rack in racks) {
+                    var voice_rack = rack as Racks.VoiceRack;
+                    if (voice_rack != null) {
+                        if (voice_rack.send_midi_event (fluid_midi_ev) == Fluid.OK) {
+                            handled = true;
+                        }
+                    }
+                }
+
+                if (handled) {
+                    return Fluid.OK;
+                }
+
+                fluid_midi_ev.set_type (MIDIEvent.EventType.CONTROL_CHANGE);
+                fluid_midi_ev.set_control (MIDIEvent.Control.EXPLICIT_PITCH);
+
+                return rendering_synth.handle_midi_event (fluid_midi_ev);
             }
 
             return Fluid.OK;
